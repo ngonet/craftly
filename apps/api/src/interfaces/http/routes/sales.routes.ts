@@ -5,9 +5,10 @@
 // handler tight and makes the use case trivially unit-testable (pass a
 // mock PrismaClient).
 
+import { QuickSaleInputSchema } from '@craftly/shared';
 import type { PrismaClient } from '@prisma/client';
 import type { FastifyPluginAsync } from 'fastify';
-import { QuickSaleInputSchema } from '@craftly/shared';
+import { GetDailySummaryUseCase } from '../../../application/sales/get-daily-summary.use-case.js';
 import {
   EmptySaleError,
   InsufficientStockError,
@@ -18,45 +19,66 @@ import {
 
 export function createSalesRoutes(prisma: PrismaClient): FastifyPluginAsync {
   const quickSale = new QuickSaleUseCase(prisma);
+  const dailySummary = new GetDailySummaryUseCase(prisma);
 
   return async (fastify) => {
     // ── POST /quick — Venta Rápida ─────────────────────
-    fastify.post(
-      '/quick',
-      { preHandler: fastify.authenticate },
-      async (request, reply) => {
-        const parsed = QuickSaleInputSchema.safeParse(request.body);
-        if (!parsed.success) {
-          return reply.code(400).send({
-            error: 'VALIDATION_ERROR',
-            details: parsed.error.flatten().fieldErrors,
-          });
-        }
+    fastify.post('/quick', { preHandler: fastify.authenticate }, async (request, reply) => {
+      const parsed = QuickSaleInputSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.code(400).send({
+          error: 'VALIDATION_ERROR',
+          details: parsed.error.flatten().fieldErrors,
+        });
+      }
 
-        try {
-          const sale = await quickSale.execute({
-            userId: request.user.id,
-            metodoPago: parsed.data.metodoPago,
-            items: parsed.data.items,
+      try {
+        const sale = await quickSale.execute({
+          userId: request.user.id,
+          metodoPago: parsed.data.metodoPago,
+          items: parsed.data.items,
+        });
+        return reply.code(201).send(sale);
+      } catch (err) {
+        if (
+          err instanceof ProductNotFoundError ||
+          err instanceof InsufficientStockError ||
+          err instanceof EmptySaleError ||
+          err instanceof InvalidQuantityError
+        ) {
+          return reply.code(err.statusCode).send({
+            error: err.code,
+            message: err.message,
+            ...('productId' in err ? { productId: err.productId } : {}),
           });
-          return reply.code(201).send(sale);
-        } catch (err) {
-          if (
-            err instanceof ProductNotFoundError ||
-            err instanceof InsufficientStockError ||
-            err instanceof EmptySaleError ||
-            err instanceof InvalidQuantityError
-          ) {
-            return reply.code(err.statusCode).send({
-              error: err.code,
-              message: err.message,
-              ...('productId' in err ? { productId: err.productId } : {}),
-            });
-          }
-          // Unknown error — let Fastify's default handler log + respond 500.
-          throw err;
         }
-      },
-    );
+        // Unknown error — let Fastify's default handler log + respond 500.
+        throw err;
+      }
+    });
+
+    // ── GET /daily-summary — Cierre de Caja ────────────
+    fastify.get('/daily-summary', { preHandler: fastify.authenticate }, async (request, reply) => {
+      const { tz } = request.query as { tz?: string };
+
+      // Validate the timezone is a real IANA name. Intl.DateTimeFormat
+      // throws on invalid timezones — cheap and reliable.
+      const timezone = tz ?? 'UTC';
+      try {
+        Intl.DateTimeFormat(undefined, { timeZone: timezone });
+      } catch {
+        return reply.code(400).send({
+          error: 'INVALID_TIMEZONE',
+          message: `Unknown timezone: "${timezone}"`,
+        });
+      }
+
+      const result = await dailySummary.execute({
+        userId: request.user.id,
+        timezone,
+      });
+
+      return reply.send(result);
+    });
   };
 }

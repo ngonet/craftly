@@ -1,18 +1,121 @@
-// Sales API hooks — TanStack Query mutations.
+// Sales API hooks — TanStack Query mutations + queries.
 //
-// Quick sale invalidates the products cache because stock changed.
+// ── Optimistic Updates (useQuickSale) ───────────────────────
+//
+// When the artisan taps "Vender", the UI must respond INSTANTLY.
+// Fair wifi is unreliable — waiting for a server round-trip means
+// the sale "freezes" for seconds, which kills the 3-tap flow.
+//
+// Strategy:
+//   onMutate  → snapshot the products cache, optimistically decrement
+//               stock for every item in the cart. Return snapshot for rollback.
+//   onError   → rollback to snapshot. The mutation stays in a "pending"
+//               state and TanStack Query retries it automatically when
+//               onlineManager detects reconnection (networkMode: offlineFirst).
+//   onSuccess → invalidate products + sales caches to get fresh server state.
+//   onSettled → always invalidate to reconcile optimistic ↔ server state.
+//
+// ── Pending Sales ───────────────────────────────────────────
+//
+// We expose `usePendingSales()` which reads the mutation cache to show
+// the artisan how many sales are waiting to sync. This lets the UI
+// display a "2 ventas pendientes" badge when offline.
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { QuickSaleInput, SaleDto } from '@craftly/shared';
+import type { DailySummary, Product, QuickSaleInput, SaleDto } from '@craftly/shared';
+import { useMutation, useMutationState, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../shared/lib/api';
+
+// ── Query keys ────────────────────────────────────────────
+
+const PRODUCTS_KEY = ['products'] as const;
+const SALES_KEY = ['sales'] as const;
+const DAILY_SUMMARY_KEY = ['sales', 'daily-summary'] as const;
+
+// ── Mutation keys (for useMutationState filtering) ────────
+
+const QUICK_SALE_KEY = ['quick-sale'] as const;
+
+// ── useQuickSale — optimistic mutation ────────────────────
 
 export function useQuickSale() {
   const qc = useQueryClient();
+
   return useMutation({
+    mutationKey: QUICK_SALE_KEY,
     mutationFn: (data: QuickSaleInput) =>
       apiFetch<SaleDto>('/api/sales/quick', { method: 'POST', json: data }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['products'] });
+
+    onMutate: async (newSale) => {
+      // 1. Cancel outgoing product refetches so they don't overwrite
+      //    our optimistic update mid-flight.
+      await qc.cancelQueries({ queryKey: PRODUCTS_KEY });
+
+      // 2. Snapshot the current products cache for rollback.
+      const previousProducts = qc.getQueriesData<Product[]>({
+        queryKey: PRODUCTS_KEY,
+      });
+
+      // 3. Optimistically decrement stock in every matching query.
+      //    There may be multiple product queries (different search terms).
+      const decrements = new Map<string, number>();
+      for (const item of newSale.items) {
+        decrements.set(item.productId, (decrements.get(item.productId) ?? 0) + item.quantity);
+      }
+
+      qc.setQueriesData<Product[]>({ queryKey: PRODUCTS_KEY }, (old) => {
+        if (!old) return old;
+        return old.map((product) => {
+          const dec = decrements.get(product.id);
+          if (dec === undefined) return product;
+          return {
+            ...product,
+            stock: Math.max(0, product.stock - dec),
+          };
+        });
+      });
+
+      // Return context for rollback.
+      return { previousProducts };
     },
+
+    onError: (_err, _newSale, context) => {
+      // Rollback: restore every product query to its pre-mutation state.
+      if (context?.previousProducts) {
+        for (const [queryKey, data] of context.previousProducts) {
+          qc.setQueryData(queryKey, data);
+        }
+      }
+      // The mutation stays in the cache with status 'error'.
+      // TanStack Query will auto-retry (networkMode: offlineFirst + retry: 3).
+    },
+
+    onSettled: () => {
+      // Whether success or final failure, reconcile with the server.
+      qc.invalidateQueries({ queryKey: PRODUCTS_KEY });
+      qc.invalidateQueries({ queryKey: SALES_KEY });
+    },
+  });
+}
+
+// ── usePendingSales — count of in-flight/retrying mutations ─
+
+export function usePendingSales(): number {
+  const pendingStates = useMutationState({
+    filters: { mutationKey: QUICK_SALE_KEY, status: 'pending' },
+    select: (mutation) => mutation.state.status,
+  });
+  return pendingStates.length;
+}
+
+// ── useDailySummary — Cierre de Caja query ────────────────
+
+export function useDailySummary() {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  return useQuery({
+    queryKey: [...DAILY_SUMMARY_KEY, tz],
+    queryFn: () => apiFetch<DailySummary>(`/api/sales/daily-summary?tz=${encodeURIComponent(tz)}`),
+    // Summary changes every sale — keep it fresh.
+    staleTime: 1000 * 30, // 30 seconds
   });
 }

@@ -2,13 +2,20 @@
 //
 // When productId is provided, loads the existing product and shows
 // a delete button. Otherwise, it's a clean creation form.
+//
+// Image upload: the ImageUpload component stages a file locally.
+// On form submit, we call imageHandle.upload() which compresses and
+// uploads to Supabase Storage, then we pass the URL to the API.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useAuth } from '../../shared/lib/auth';
 import { useRouter } from '../../shared/lib/router';
+import { ImageUpload, type ImageUploadRef } from './ImageUpload';
 import { useCreateProduct, useDeleteProduct, useProduct, useUpdateProduct } from './api';
 
 export function ProductForm({ productId }: { productId?: string }) {
   const { goBack } = useRouter();
+  const { user } = useAuth();
   const { data: existing, isLoading } = useProduct(productId);
   const createMutation = useCreateProduct();
   const updateMutation = useUpdateProduct();
@@ -19,6 +26,8 @@ export function ProductForm({ productId }: { productId?: string }) {
   const [priceSale, setPriceSale] = useState('');
   const [stock, setStock] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+  const imageRef = useRef<ImageUploadRef>(null);
 
   const isEditing = !!productId;
   const isSaving = createMutation.isPending || updateMutation.isPending;
@@ -36,12 +45,17 @@ export function ProductForm({ productId }: { productId?: string }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!user) return;
+
+    // Upload image first (no-op if no file staged).
+    const imageUrl = (await imageRef.current?.upload(user.id, productId)) ?? null;
 
     const data = {
       name: name.trim(),
       costoBase,
       priceSale,
       stock: Number(stock),
+      imageUrl,
     };
 
     if (isEditing && productId) {
@@ -89,6 +103,12 @@ export function ProductForm({ productId }: { productId?: string }) {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+        {/* Image upload */}
+        <div>
+          <span className="block text-sm font-medium text-stone-700 mb-1">Foto del producto</span>
+          <ImageUpload ref={imageRef} currentUrl={existing?.imageUrl} />
+        </div>
+
         <div>
           <label htmlFor="pf-name" className="block text-sm font-medium text-stone-700 mb-1">
             Nombre
@@ -168,8 +188,7 @@ export function ProductForm({ productId }: { productId?: string }) {
               <span className="font-semibold text-craft-700">
                 ${(Number(priceSale) - Number(costoBase)).toFixed(2)}
               </span>{' '}
-              por unidad (
-              {((1 - Number(costoBase) / Number(priceSale)) * 100).toFixed(0)}%)
+              por unidad ({((1 - Number(costoBase) / Number(priceSale)) * 100).toFixed(0)}%)
             </p>
           </div>
         )}
@@ -180,11 +199,7 @@ export function ProductForm({ productId }: { productId?: string }) {
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="btn-primary w-full"
-        >
+        <button type="submit" disabled={isSaving} className="btn-primary w-full">
           {isSaving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear producto'}
         </button>
 

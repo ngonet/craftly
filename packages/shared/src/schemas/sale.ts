@@ -49,3 +49,24 @@ export const SaleSchema = z.object({
 
 export type SaleItemDto = z.infer<typeof SaleItemSchema>;
 export type SaleDto = z.infer<typeof SaleSchema>;
+
+// ── Daily Summary (Cierre de Caja) ───────────────────────
+
+export const PaymentBreakdownSchema = z.object({
+  metodoPago: MetodoPagoSchema,
+  count: z.number().int().nonnegative(),
+  total: Money,
+});
+
+export const DailySummarySchema = z.object({
+  date: z.string(), // YYYY-MM-DD in the requested timezone
+  salesCount: z.number().int().nonnegative(),
+  totalVentas: Money,
+  totalCosto: Money,
+  utilidad: Money, // totalVentas - totalCosto
+  byMetodoPago: z.array(PaymentBreakdownSchema),
+  sales: z.array(SaleSchema),
+});
+
+export type PaymentBreakdown = z.infer<typeof PaymentBreakdownSchema>;
+export type DailySummary = z.infer<typeof DailySummarySchema>;

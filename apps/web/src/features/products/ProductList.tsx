@@ -4,8 +4,8 @@
 // Tap a product card → edit form. FAB → create form.
 
 import { useState } from 'react';
-import { useProducts } from './api';
 import { useRouter } from '../../shared/lib/router';
+import { useProducts } from './api';
 
 function StockBadge({ stock }: { stock: number }) {
   if (stock === 0) {
@@ -49,15 +49,9 @@ export function ProductList() {
 
       {/* Product list */}
       <div className="flex-1 overflow-y-auto px-5 pb-24">
-        {isLoading && (
-          <div className="text-center py-12 text-stone-400">Cargando...</div>
-        )}
+        {isLoading && <div className="text-center py-12 text-stone-400">Cargando...</div>}
 
-        {error && (
-          <div className="text-center py-12 text-red-600">
-            Error al cargar productos
-          </div>
-        )}
+        {error && <div className="text-center py-12 text-red-600">Error al cargar productos</div>}
 
         {products && products.length === 0 && (
           <div className="text-center py-12">
@@ -83,20 +77,27 @@ export function ProductList() {
                 <button
                   type="button"
                   className="card w-full text-left active:scale-[0.98] transition-transform"
-                  onClick={() =>
-                    navigate({ name: 'product-form', productId: product.id })
-                  }
+                  onClick={() => navigate({ name: 'product-form', productId: product.id })}
                 >
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {product.imageUrl ? (
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-stone-100 flex-shrink-0 flex items-center justify-center">
+                        <span className="text-stone-400 text-lg">
+                          {product.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-stone-900 truncate">
-                        {product.name}
-                      </p>
+                      <p className="font-semibold text-stone-900 truncate">{product.name}</p>
                       <p className="text-sm text-stone-500 mt-0.5">
                         Costo ${product.costoBase} · Venta{' '}
-                        <span className="font-semibold text-craft-700">
-                          ${product.priceSale}
-                        </span>
+                        <span className="font-semibold text-craft-700">${product.priceSale}</span>
                       </p>
                     </div>
                     <StockBadge stock={product.stock} />

@@ -4,22 +4,23 @@
 // lighter, and gives us full control over transitions and back behavior.
 
 import {
+  type ReactNode,
   createContext,
   useCallback,
   useContext,
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from 'react';
 
 export type Screen =
   | { name: 'products' }
   | { name: 'product-form'; productId?: string }
   | { name: 'quick-sale' }
-  | { name: 'sale-success'; total: string };
+  | { name: 'sale-success'; total: string }
+  | { name: 'daily-summary' };
 
-export type Tab = 'products' | 'quick-sale';
+export type Tab = 'products' | 'quick-sale' | 'daily-summary';
 
 interface RouterState {
   screen: Screen;
@@ -34,6 +35,7 @@ const RouterContext = createContext<RouterState | null>(null);
 const TAB_ROOT: Record<Tab, Screen> = {
   products: { name: 'products' },
   'quick-sale': { name: 'quick-sale' },
+  'daily-summary': { name: 'daily-summary' },
 };
 
 export function RouterProvider({ children }: { children: ReactNode }) {
@@ -56,6 +58,8 @@ export function RouterProvider({ children }: { children: ReactNode }) {
       // Sync tab highlight
       if (prev.name === 'products' || prev.name === 'product-form') {
         setActiveTab('products');
+      } else if (prev.name === 'daily-summary') {
+        setActiveTab('daily-summary');
       } else {
         setActiveTab('quick-sale');
       }
@@ -73,9 +77,7 @@ export function RouterProvider({ children }: { children: ReactNode }) {
     [screen, activeTab, navigate, goBack, setTab],
   );
 
-  return (
-    <RouterContext.Provider value={value}>{children}</RouterContext.Provider>
-  );
+  return <RouterContext.Provider value={value}>{children}</RouterContext.Provider>;
 }
 
 export function useRouter(): RouterState {

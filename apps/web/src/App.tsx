@@ -4,14 +4,15 @@
 // Once authenticated, the router context handles screen navigation
 // with a bottom tab bar (Productos | Vender).
 
+import { ProductForm } from './features/products/ProductForm';
+import { ProductList } from './features/products/ProductList';
+import { DailySummary } from './features/sales/DailySummary';
+import { QuickSale } from './features/sales/QuickSale';
+import { SaleSuccess } from './features/sales/SaleSuccess';
 import { useAuth } from './shared/lib/auth';
 import { useRouter } from './shared/lib/router';
 import { supabase } from './shared/lib/supabase';
 import { BottomNav } from './shared/ui/BottomNav';
-import { ProductForm } from './features/products/ProductForm';
-import { ProductList } from './features/products/ProductList';
-import { QuickSale } from './features/sales/QuickSale';
-import { SaleSuccess } from './features/sales/SaleSuccess';
 
 function LoadingScreen() {
   return (
@@ -43,9 +44,7 @@ function LoginScreen() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-craft-700">Craftly</h1>
-          <p className="mt-2 text-stone-600 text-lg">
-            Tu inventario de feria, simple.
-          </p>
+          <p className="mt-2 text-stone-600 text-lg">Tu inventario de feria, simple.</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -82,6 +81,8 @@ function CurrentScreen() {
       return <QuickSale />;
     case 'sale-success':
       return <SaleSuccess total={screen.total} />;
+    case 'daily-summary':
+      return <DailySummary />;
   }
 }
 
@@ -98,14 +99,8 @@ function MainScreen() {
       <header className="flex items-center justify-between px-5 py-4 border-b border-stone-200">
         <h1 className="text-xl font-bold text-craft-700">Craftly</h1>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-stone-400 hidden sm:inline">
-            {user?.email}
-          </span>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="btn-ghost text-sm"
-          >
+          <span className="text-sm text-stone-400 hidden sm:inline">{user?.email}</span>
+          <button type="button" onClick={handleLogout} className="btn-ghost text-sm">
             Salir
           </button>
         </div>

@@ -8,11 +8,11 @@
 // list — but the actual price used in the sale is the server snapshot
 // (see QuickSaleUseCase). The client just sends productId + quantity.
 
-import { useCallback, useMemo, useState } from 'react';
 import type { MetodoPago, Product } from '@craftly/shared';
-import { useProducts } from '../products/api';
-import { useQuickSale } from './api';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from '../../shared/lib/router';
+import { useProducts } from '../products/api';
+import { usePendingSales, useQuickSale } from './api';
 
 interface CartItem {
   productId: string;
@@ -27,31 +27,30 @@ export function QuickSale() {
   const { data: products, isLoading } = useProducts();
   const saleMutation = useQuickSale();
 
+  const pendingCount = usePendingSales();
+
   const [cart, setCart] = useState<Map<string, CartItem>>(new Map());
   const [metodoPago, setMetodoPago] = useState<MetodoPago>('EFECTIVO');
 
-  const addToCart = useCallback(
-    (product: Product) => {
-      setCart((prev) => {
-        const next = new Map(prev);
-        const existing = next.get(product.id);
-        const currentQty = existing?.quantity ?? 0;
-        const maxStock = product.stock - currentQty;
+  const addToCart = useCallback((product: Product) => {
+    setCart((prev) => {
+      const next = new Map(prev);
+      const existing = next.get(product.id);
+      const currentQty = existing?.quantity ?? 0;
+      const maxStock = product.stock - currentQty;
 
-        if (maxStock <= 0) return prev;
+      if (maxStock <= 0) return prev;
 
-        next.set(product.id, {
-          productId: product.id,
-          name: product.name,
-          price: Number(product.priceSale),
-          quantity: currentQty + 1,
-          maxStock: product.stock,
-        });
-        return next;
+      next.set(product.id, {
+        productId: product.id,
+        name: product.name,
+        price: Number(product.priceSale),
+        quantity: currentQty + 1,
+        maxStock: product.stock,
       });
-    },
-    [],
-  );
+      return next;
+    });
+  }, []);
 
   const removeFromCart = useCallback((productId: string) => {
     setCart((prev) => {
@@ -100,16 +99,25 @@ export function QuickSale() {
     <div className="flex flex-col h-full">
       {/* Product grid */}
       <div className="flex-1 overflow-y-auto px-5 pt-4 pb-48">
-        {isLoading && (
-          <div className="text-center py-12 text-stone-400">Cargando...</div>
+        {pendingCount > 0 && (
+          <div className="mb-3 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+            </span>
+            <span className="text-sm text-amber-800 font-medium">
+              {pendingCount} {pendingCount === 1 ? 'venta pendiente' : 'ventas pendientes'} de
+              sincronizar
+            </span>
+          </div>
         )}
+
+        {isLoading && <div className="text-center py-12 text-stone-400">Cargando...</div>}
 
         {products && available.length === 0 && outOfStock.length === 0 && (
           <div className="text-center py-12">
             <p className="text-stone-400 text-lg">No tenés productos</p>
-            <p className="text-stone-400 text-sm mt-1">
-              Crealos desde la pestaña Productos
-            </p>
+            <p className="text-stone-400 text-sm mt-1">Crealos desde la pestaña Productos</p>
           </div>
         )}
 
@@ -129,19 +137,28 @@ export function QuickSale() {
                     ${inCart ? 'ring-2 ring-craft-500 bg-craft-50' : ''}
                     ${remainingStock <= 0 ? 'opacity-50' : ''}`}
                 >
-                  <p className="font-semibold text-stone-900 text-sm truncate">
-                    {product.name}
-                  </p>
-                  <p className="text-craft-700 font-bold mt-1">
-                    ${product.priceSale}
-                  </p>
-                  <p className="text-xs text-stone-400 mt-0.5">
-                    {remainingStock} disponibles
-                  </p>
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="w-full h-16 object-cover rounded-lg mb-1.5"
+                    />
+                  ) : (
+                    <div className="w-full h-16 rounded-lg bg-stone-100 flex items-center justify-center mb-1.5">
+                      <span className="text-stone-300 text-xl font-bold">
+                        {product.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <p className="font-semibold text-stone-900 text-sm truncate">{product.name}</p>
+                  <p className="text-craft-700 font-bold mt-1">${product.priceSale}</p>
+                  <p className="text-xs text-stone-400 mt-0.5">{remainingStock} disponibles</p>
 
                   {inCart && (
-                    <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-craft-600 text-white
-                                     text-xs font-bold flex items-center justify-center shadow">
+                    <span
+                      className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-craft-600 text-white
+                                     text-xs font-bold flex items-center justify-center shadow"
+                    >
                       {inCart.quantity}
                     </span>
                   )}
@@ -159,12 +176,8 @@ export function QuickSale() {
             <div className="grid grid-cols-2 gap-3 opacity-40">
               {outOfStock.map((product) => (
                 <div key={product.id} className="card">
-                  <p className="font-semibold text-stone-900 text-sm truncate">
-                    {product.name}
-                  </p>
-                  <p className="text-stone-400 font-bold mt-1">
-                    ${product.priceSale}
-                  </p>
+                  <p className="font-semibold text-stone-900 text-sm truncate">{product.name}</p>
+                  <p className="text-stone-400 font-bold mt-1">${product.priceSale}</p>
                 </div>
               ))}
             </div>
@@ -196,9 +209,7 @@ export function QuickSale() {
                 </button>
               ))}
             </div>
-            <span className="text-lg font-bold text-stone-900">
-              ${total.toFixed(2)}
-            </span>
+            <span className="text-lg font-bold text-stone-900">${total.toFixed(2)}</span>
           </div>
 
           {/* Payment method toggle */}
@@ -234,9 +245,7 @@ export function QuickSale() {
             onClick={handleSell}
             className="btn-primary w-full text-lg"
           >
-            {saleMutation.isPending
-              ? 'Registrando...'
-              : `Vender $${total.toFixed(2)}`}
+            {saleMutation.isPending ? 'Registrando...' : `Vender $${total.toFixed(2)}`}
           </button>
 
           {saleMutation.error && (
