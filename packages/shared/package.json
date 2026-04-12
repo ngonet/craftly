@@ -1,0 +1,22 @@
+{
+  "name": "@craftly/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Craftly shared package — Zod schemas & TypeScript contracts shared between API and Web.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schemas/*": "./src/schemas/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

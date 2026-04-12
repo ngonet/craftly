@@ -1,0 +1,46 @@
+{
+  "name": "craftly",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Craftly — SaaS de gestión de inventario para artesanos de ferias. Mobile-first, offline-ready, registro de venta en 3 taps.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ngonet/craftly.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ngonet/craftly/issues"
+  },
+  "homepage": "https://github.com/ngonet/craftly#readme",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "dev:api": "npm run dev --workspace @craftly/api",
+    "dev:web": "npm run dev --workspace @craftly/web",
+    "db:generate": "npm run db:generate --workspace @craftly/api",
+    "db:migrate": "npm run db:migrate --workspace @craftly/api",
+    "db:deploy": "npm run db:deploy --workspace @craftly/api",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:api": "vitest run --project api",
+    "test:web": "vitest run --project web"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@vitest/coverage-v8": "4.1.4",
+    "typescript": "^5.6.3",
+    "vitest": "4.1.4"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

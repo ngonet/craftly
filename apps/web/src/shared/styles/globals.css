@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    /* Prevent iOS zoom on input focus — inputs MUST be >= 16px */
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    /* Smooth scroll for anchor navigation */
+    scroll-behavior: smooth;
+  }
+
+  body {
+    /* Smooth momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+    min-height: 100dvh;
+  }
+
+  /* High-contrast focus ring — critical for accessibility */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-craft-600 rounded-sm;
+  }
+
+  /* Prevent text selection on interactive elements (mobile UX) */
+  button,
+  [role='button'] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+@layer components {
+  /* Modo Zen button — minimum 44px touch target, high contrast */
+  .btn {
+    @apply inline-flex items-center justify-center
+           min-h-touch px-6 py-3
+           font-semibold rounded-xl
+           transition-colors duration-150
+           active:scale-[0.97]
+           disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-craft-600 text-white
+           hover:bg-craft-700 active:bg-craft-800;
+  }
+
+  .btn-secondary {
+    @apply btn bg-stone-200 text-stone-900
+           hover:bg-stone-300 active:bg-stone-400;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-stone-700
+           hover:bg-stone-100 active:bg-stone-200;
+  }
+
+  /* Input — 44px min height, 16px font (no iOS zoom) */
+  .input {
+    @apply w-full min-h-touch px-4 py-3
+           text-base bg-white
+           border border-stone-300 rounded-xl
+           placeholder:text-stone-400
+           focus:border-craft-500 focus:ring-2 focus:ring-craft-500/20
+           disabled:bg-stone-100 disabled:text-stone-500;
+  }
+
+  /* Card — clean container for Modo Zen */
+  .card {
+    @apply bg-white rounded-2xl p-5 shadow-sm
+           border border-stone-100;
+  }
+
+  /* Safe area padding for notched phones (iPhone X+) */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
