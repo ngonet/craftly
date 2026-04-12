@@ -74,3 +74,9 @@ pnpm-debug.log*
 *.pem
 .cache/
 .atl/
+
+# Documentation
+CLAUDE.md
+AGENTS.md
+.windsurf/
+.gga

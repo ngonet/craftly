@@ -20,6 +20,7 @@ import {
   jwtVerify,
   type JWTPayload,
 } from 'jose';
+import { getPrismaClient } from '../../../infrastructure/prisma/client.js';
 
 // ─────────────────────────────────────────────────────────────
 // Public types — augment Fastify's request/instance
@@ -84,12 +85,21 @@ function isSupabasePayload(payload: JWTPayload): payload is SupabaseJWTPayload {
   return typeof payload.sub === 'string' && payload.sub.length > 0;
 }
 
+function resolveUserEmail(payload: SupabaseJWTPayload): string {
+  if (typeof payload.email === 'string' && payload.email.length > 0) {
+    return payload.email;
+  }
+
+  return `user-${payload.sub}@local.invalid`;
+}
+
 // ─────────────────────────────────────────────────────────────
 // Plugin implementation
 // ─────────────────────────────────────────────────────────────
 
 const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, opts) => {
   const { jwksUrl, jwtSecret, issuer, audience = 'authenticated' } = opts;
+  const prisma = getPrismaClient();
 
   if (!jwksUrl && !jwtSecret) {
     throw new Error(
@@ -142,13 +152,10 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, opts) 
       throw new UnauthorizedError('empty bearer token');
     }
 
+    let payload: SupabaseJWTPayload;
+
     try {
-      const payload = await verifyToken(token);
-      request.user = {
-        id: payload.sub,
-        email: payload.email ?? '',
-        role: payload.role ?? 'authenticated',
-      };
+      payload = await verifyToken(token);
     } catch (err) {
       if (err instanceof UnauthorizedError) throw err;
 
@@ -168,6 +175,28 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, opts) 
       fastify.log.error({ err }, 'auth: unexpected verification error');
       throw new UnauthorizedError('authentication failed');
     }
+
+    const email = resolveUserEmail(payload);
+
+    try {
+      await prisma.user.upsert({
+        where: { id: payload.sub },
+        update: { email },
+        create: {
+          id: payload.sub,
+          email,
+        },
+      });
+    } catch (err) {
+      fastify.log.error({ err, userId: payload.sub }, 'auth: failed to sync local user');
+      throw err;
+    }
+
+    request.user = {
+      id: payload.sub,
+      email,
+      role: payload.role ?? 'authenticated',
+    };
   });
 };
 

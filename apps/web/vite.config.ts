@@ -5,6 +5,7 @@ import { defineConfig } from 'vitest/config';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  envDir: resolve(__dirname, '../..'),
   plugins: [
     react(),
     VitePWA({

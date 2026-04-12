@@ -45,6 +45,12 @@ export async function buildApp(): Promise<FastifyInstance> {
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
+  app.get('/', async () => ({
+    name: 'Craftly API',
+    status: 'ok',
+    health: '/health',
+  }));
+
   // ── Auth ──────────────────────────────────────────────
   await app.register(authPlugin, {
     jwksUrl: env.SUPABASE_JWKS_URL,
