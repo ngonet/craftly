@@ -4,13 +4,20 @@
   "private": true,
   "description": "Craftly shared package — Zod schemas & TypeScript contracts shared between API and Web.",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./schemas/*": "./src/schemas/*.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schemas/*": {
+      "types": "./dist/schemas/*.d.ts",
+      "default": "./dist/schemas/*.js"
+    }
   },
   "scripts": {
+    "build": "tsc",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

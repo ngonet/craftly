@@ -9,17 +9,28 @@
 // boot on subsequent requests.
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { buildApp } from '../src/app.js';
 
-const appPromise = buildApp().then(async (app) => {
+let appPromise: Promise<import('fastify').FastifyInstance> | null = null;
+
+async function initApp() {
+  const { buildApp } = await import('../src/app.js');
+  const app = await buildApp();
   await app.ready();
   return app;
-});
+}
 
 export default async function handler(
   req: IncomingMessage,
   res: ServerResponse,
 ): Promise<void> {
-  const app = await appPromise;
-  app.server.emit('request', req, res);
+  try {
+    if (!appPromise) appPromise = initApp();
+    const app = await appPromise;
+    app.server.emit('request', req, res);
+  } catch {
+    appPromise = null;
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ error: 'Internal server error' }));
+  }
 }
