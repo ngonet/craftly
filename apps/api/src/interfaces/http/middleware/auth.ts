@@ -16,6 +16,7 @@ import type { FastifyPluginAsync, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import {
   createRemoteJWKSet,
+  decodeProtectedHeader,
   errors as joseErrors,
   jwtVerify,
   type JWTPayload,
@@ -111,6 +112,7 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, opts) 
   // Build the verification function ONCE at plugin init, not per request.
   // Keeps the hot path tight and the JWKS cache alive for the process.
   let verifyToken: (token: string) => Promise<SupabaseJWTPayload>;
+  const verificationMode = jwksUrl ? 'jwks' : 'jwt-secret';
 
   if (jwksUrl) {
     const jwks = createRemoteJWKSet(new URL(jwksUrl));
@@ -140,6 +142,16 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, opts) 
     };
   }
 
+  fastify.log.info(
+    {
+      verificationMode,
+      issuer,
+      audience,
+      jwksUrl,
+    },
+    'auth: initialized token verifier',
+  );
+
   fastify.decorate('authenticate', async (request: FastifyRequest) => {
     const header = request.headers.authorization;
 
@@ -152,6 +164,26 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, opts) 
       throw new UnauthorizedError('empty bearer token');
     }
 
+    const tokenHeader = (() => {
+      try {
+        const protectedHeader = decodeProtectedHeader(token);
+        return {
+          alg: protectedHeader.alg,
+          ...(typeof protectedHeader.kid === 'string'
+            ? { kid: protectedHeader.kid }
+            : {}),
+          ...(typeof protectedHeader.typ === 'string'
+            ? { typ: protectedHeader.typ }
+            : {}),
+        };
+      } catch (err) {
+        return {
+          decodeError:
+            err instanceof Error ? err.message : 'unknown protected header decode error',
+        };
+      }
+    })();
+
     let payload: SupabaseJWTPayload;
 
     try {
@@ -160,6 +192,15 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, opts) 
       if (err instanceof UnauthorizedError) throw err;
 
       if (err instanceof joseErrors.JWTExpired) {
+        fastify.log.warn(
+          {
+            errName: err.name,
+            errMessage: err.message,
+            verificationMode,
+            tokenHeader,
+          },
+          'auth: token expired',
+        );
         throw new UnauthorizedError('token expired');
       }
       if (
@@ -168,11 +209,31 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, opts) 
         err instanceof joseErrors.JWSInvalid ||
         err instanceof joseErrors.JWSSignatureVerificationFailed
       ) {
+        fastify.log.warn(
+          {
+            errName: err.name,
+            errMessage: err.message,
+            verificationMode,
+            issuer,
+            audience,
+            tokenHeader,
+          },
+          'auth: token verification failed',
+        );
         throw new UnauthorizedError('invalid token');
       }
 
       // Unknown failure — log server-side, keep the client message generic.
-      fastify.log.error({ err }, 'auth: unexpected verification error');
+      fastify.log.error(
+        {
+          err,
+          verificationMode,
+          issuer,
+          audience,
+          tokenHeader,
+        },
+        'auth: unexpected verification error',
+      );
       throw new UnauthorizedError('authentication failed');
     }
 
