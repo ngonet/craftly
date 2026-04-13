@@ -43,7 +43,8 @@ function LoginScreen() {
     }
 
     const email = emailEntry;
-    const emailRedirectTo = window.location.origin;
+    const emailRedirectTo =
+      import.meta.env.VITE_AUTH_REDIRECT_URL?.trim() || window.location.origin;
     setFeedbackMessage(null);
     setFeedbackTone(null);
 
