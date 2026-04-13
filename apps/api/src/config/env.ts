@@ -4,11 +4,19 @@
 
 import { z } from 'zod';
 
+const trimEnvString = (value: unknown) => {
+  if (typeof value !== 'string') return value;
+  return value.trim();
+};
+
+const requiredEnvString = () =>
+  z.preprocess(trimEnvString, z.string().min(1));
+
 const optionalEnvString = () =>
   z.preprocess(
     (value) => {
-      if (typeof value !== 'string') return value;
-      const trimmed = value.trim();
+      const trimmed = trimEnvString(value);
+      if (typeof trimmed !== 'string') return trimmed;
       return trimmed === '' ? undefined : trimmed;
     },
     z.string().min(1).optional(),
@@ -28,8 +36,9 @@ const EnvSchema = z
     DIRECT_URL: z.string().min(1),
 
     // Supabase JWT verification.
-    SUPABASE_JWT_ISSUER: z.string().url(),
-    SUPABASE_JWT_AUDIENCE: z.string().default('authenticated'),
+    SUPABASE_JWT_ISSUER: requiredEnvString().pipe(z.string().url()),
+    SUPABASE_JWT_AUDIENCE: z
+      .preprocess(trimEnvString, z.string().min(1).default('authenticated')),
     SUPABASE_JWKS_URL: optionalEnvString().pipe(z.string().url().optional()),
     SUPABASE_JWT_SECRET: optionalEnvString(),
   })
