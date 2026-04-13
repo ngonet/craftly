@@ -15,12 +15,11 @@ import type {
   UpdateProductInput,
 } from '@craftly/shared';
 import { apiFetch } from '../../shared/lib/api';
-
-const PRODUCTS_KEY = ['products'] as const;
+import { productKeys } from './query-keys';
 
 export function useProducts(search?: string) {
   return useQuery({
-    queryKey: [...PRODUCTS_KEY, { search }],
+    queryKey: productKeys.list(search),
     queryFn: () =>
       apiFetch<Product[]>(
         `/api/products${search ? `?search=${encodeURIComponent(search)}` : ''}`,
@@ -30,7 +29,7 @@ export function useProducts(search?: string) {
 
 export function useProduct(id: string | undefined) {
   return useQuery({
-    queryKey: [...PRODUCTS_KEY, id],
+    queryKey: productKeys.detail(id),
     queryFn: () => apiFetch<Product>(`/api/products/${id}`),
     enabled: !!id,
   });
@@ -41,7 +40,7 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: (data: CreateProductInput) =>
       apiFetch<Product>('/api/products', { method: 'POST', json: data }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: productKeys.all }),
   });
 }
 
@@ -50,7 +49,7 @@ export function useUpdateProduct() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateProductInput }) =>
       apiFetch<Product>(`/api/products/${id}`, { method: 'PATCH', json: data }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: productKeys.all }),
   });
 }
 
@@ -59,6 +58,6 @@ export function useDeleteProduct() {
   return useMutation({
     mutationFn: (id: string) =>
       apiFetch<void>(`/api/products/${id}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: productKeys.all }),
   });
 }
