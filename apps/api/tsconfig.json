@@ -10,6 +10,6 @@
     "sourceMap": true,
     "removeComments": false
   },
-  "include": ["src/**/*", "vitest.config.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "prisma/migrations"]
 }

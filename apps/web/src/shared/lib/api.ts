@@ -41,7 +41,7 @@ export async function apiFetch<T = unknown>(
   const { json, ...fetchOptions } = options ?? {};
 
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...(json !== undefined ? { 'Content-Type': 'application/json' } : {}),
     ...(session?.access_token
       ? { Authorization: `Bearer ${session.access_token}` }
       : {}),

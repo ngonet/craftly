@@ -9,11 +9,15 @@
 
 import { randomUUID } from 'node:crypto';
 
-import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance } from 'fastify';
 
 import { loadEnv } from './config/env.js';
 import { getPrismaClient } from './infrastructure/prisma/client.js';
+import {
+  createCorsHeaders,
+  resolveAllowedOrigin,
+  resolveAllowedOrigins,
+} from './interfaces/http/cors.js';
 import authPlugin from './interfaces/http/middleware/auth.js';
 import { healthRoutes } from './interfaces/http/routes/health.routes.js';
 import { createProductRoutes } from './interfaces/http/routes/products.routes.js';
@@ -22,6 +26,7 @@ import { createSalesRoutes } from './interfaces/http/routes/sales.routes.js';
 export async function buildApp(): Promise<FastifyInstance> {
   const env = loadEnv();
   const prisma = getPrismaClient();
+  const allowedOrigins = resolveAllowedOrigins(env.CORS_ORIGIN);
 
   const app = Fastify({
     logger: {
@@ -38,11 +43,22 @@ export async function buildApp(): Promise<FastifyInstance> {
     bodyLimit: 64 * 1024, // 64 KB
   });
 
-  // ── CORS ──────────────────────────────────────────────
-  await app.register(cors, {
-    origin: env.CORS_ORIGIN.split(',').map((o) => o.trim()),
-    credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  app.addHook('onRequest', async (request, reply) => {
+    const allowedOrigin = resolveAllowedOrigin(
+      allowedOrigins,
+      request.headers.origin,
+    );
+    if (!allowedOrigin) return;
+
+    const corsHeaders = createCorsHeaders(allowedOrigin);
+
+    for (const [headerName, headerValue] of Object.entries(corsHeaders)) {
+      reply.header(headerName, headerValue);
+    }
+
+    if (request.method === 'OPTIONS') {
+      reply.code(204).send();
+    }
   });
 
   app.get('/', async () => ({

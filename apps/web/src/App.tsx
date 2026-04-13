@@ -4,6 +4,8 @@
 // Once authenticated, the router context handles screen navigation
 // with a bottom tab bar (Productos | Vender).
 
+import { useState } from 'react';
+
 import { ProductForm } from './features/products/ProductForm';
 import { ProductList } from './features/products/ProductList';
 import { DailySummary } from './features/sales/DailySummary';
@@ -26,17 +28,38 @@ function LoadingScreen() {
 }
 
 function LoginScreen() {
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [feedbackTone, setFeedbackTone] = useState<'error' | 'success' | null>(null);
+
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    const email = form.get('email') as string;
+    const emailEntry = form.get('email');
 
-    const { error } = await supabase.auth.signInWithOtp({ email });
-    if (error) {
-      alert(`Error: ${error.message}`);
+    if (typeof emailEntry !== 'string' || emailEntry.length === 0) {
+      setFeedbackTone('error');
+      setFeedbackMessage('Ingresá un email válido para recibir el link mágico.');
       return;
     }
-    alert('Revisá tu email — te enviamos un link mágico para entrar.');
+
+    const email = emailEntry;
+    const emailRedirectTo = window.location.origin;
+    setFeedbackMessage(null);
+    setFeedbackTone(null);
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo,
+      },
+    });
+    if (error) {
+      setFeedbackTone('error');
+      setFeedbackMessage(`No pudimos enviarte el link mágico: ${error.message}`);
+      return;
+    }
+    setFeedbackTone('success');
+    setFeedbackMessage('Revisá tu email — te enviamos un link mágico para entrar.');
   }
 
   return (
@@ -60,6 +83,16 @@ function LoginScreen() {
             Entrar con email
           </button>
         </form>
+
+        {feedbackMessage ? (
+          <p
+            className={`mt-4 text-sm ${
+              feedbackTone === 'error' ? 'text-red-600' : 'text-emerald-600'
+            }`}
+          >
+            {feedbackMessage}
+          </p>
+        ) : null}
 
         <p className="mt-6 text-center text-sm text-stone-400">
           Te enviamos un link mágico. Sin contraseñas.
