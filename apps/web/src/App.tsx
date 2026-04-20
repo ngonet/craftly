@@ -4,7 +4,7 @@
 // Once authenticated, the router context handles screen navigation
 // with a bottom tab bar (Productos | Vender).
 
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 
 import { ProductForm } from './features/products/ProductForm';
 import { ProductList } from './features/products/ProductList';
@@ -12,8 +12,9 @@ import { DailySummary } from './features/sales/DailySummary';
 import { QuickSale } from './features/sales/QuickSale';
 import { SaleSuccess } from './features/sales/SaleSuccess';
 import { useAuth } from './shared/lib/auth';
+import { useAuthActions } from './shared/lib/auth-actions';
+import { useDisplaySettings } from './shared/lib/display-settings';
 import { useRouter } from './shared/lib/router';
-import { supabase } from './shared/lib/supabase';
 import { BottomNav } from './shared/ui/BottomNav';
 
 function LoadingScreen() {
@@ -30,37 +31,24 @@ function LoadingScreen() {
 function LoginScreen() {
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [feedbackTone, setFeedbackTone] = useState<'error' | 'success' | null>(null);
+  const { loginWithMagicLink } = useAuthActions();
 
-  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    const emailEntry = form.get('email');
+    const { errorMessage, successMessage } = await loginWithMagicLink(form.get('email'));
 
-    if (typeof emailEntry !== 'string' || emailEntry.length === 0) {
-      setFeedbackTone('error');
-      setFeedbackMessage('Ingresá un email válido para recibir el link mágico.');
-      return;
-    }
-
-    const email = emailEntry;
-    const emailRedirectTo =
-      import.meta.env.VITE_AUTH_REDIRECT_URL?.trim() || window.location.origin;
     setFeedbackMessage(null);
     setFeedbackTone(null);
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo,
-      },
-    });
-    if (error) {
+    if (errorMessage) {
       setFeedbackTone('error');
-      setFeedbackMessage(`No pudimos enviarte el link mágico: ${error.message}`);
+      setFeedbackMessage(errorMessage);
       return;
     }
+
     setFeedbackTone('success');
-    setFeedbackMessage('Revisá tu email — te enviamos un link mágico para entrar.');
+    setFeedbackMessage(successMessage);
   }
 
   return (
@@ -122,17 +110,70 @@ function CurrentScreen() {
 
 function MainScreen() {
   const { user } = useAuth();
+  const { logout } = useAuthActions();
+  const {
+    theme,
+    canDecreaseSmallText,
+    canIncreaseSmallText,
+    decreaseSmallText,
+    increaseSmallText,
+    toggleTheme,
+  } = useDisplaySettings();
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    await logout();
   }
 
   return (
     <div className="min-h-dvh flex flex-col pb-16">
       {/* Header */}
-      <header className="flex items-center justify-between px-5 py-4 border-b border-stone-200">
-        <h1 className="text-xl font-bold text-craft-700">Craftly</h1>
-        <div className="flex items-center gap-3">
+      <header
+        className="flex items-center justify-between gap-3 px-5 py-4 border-b border-stone-200"
+      >
+        <div>
+          <h1 className="text-xl font-bold text-craft-700">Craftly</h1>
+          <p className="mt-0.5 text-xs text-stone-400">Modo lectura para fuentes chicas</p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <div className="inline-flex items-center rounded-xl border border-stone-200 bg-white p-1">
+            <button
+              type="button"
+              onClick={decreaseSmallText}
+              disabled={!canDecreaseSmallText}
+              aria-label="Reducir fuentes pequeñas"
+              className={
+                'inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm ' +
+                'font-semibold text-stone-700 transition-colors hover:bg-stone-100 ' +
+                'disabled:text-stone-300 disabled:hover:bg-transparent'
+              }
+            >
+              -
+            </button>
+            <span className="px-2 text-xs font-semibold uppercase tracking-wider text-stone-400">
+              Aa
+            </span>
+            <button
+              type="button"
+              onClick={increaseSmallText}
+              disabled={!canIncreaseSmallText}
+              aria-label="Aumentar fuentes pequeñas"
+              className={
+                'inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm ' +
+                'font-semibold text-stone-700 transition-colors hover:bg-stone-100 ' +
+                'disabled:text-stone-300 disabled:hover:bg-transparent'
+              }
+            >
+              +
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-pressed={theme === 'dark'}
+            className="btn-ghost min-w-touch px-3 text-sm"
+          >
+            {theme === 'dark' ? '☀️ Claro' : '🌙 Oscuro'}
+          </button>
           <span className="text-sm text-stone-400 hidden sm:inline">{user?.email}</span>
           <button type="button" onClick={handleLogout} className="btn-ghost text-sm">
             Salir
