@@ -16,6 +16,7 @@ import { useAuthActions } from './shared/lib/auth-actions';
 import { useDisplaySettings } from './shared/lib/display-settings';
 import { useRouter } from './shared/lib/router';
 import { BottomNav } from './shared/ui/BottomNav';
+import { ErrorBoundary } from './shared/ui/ErrorBoundary';
 
 function LoadingScreen() {
   return (
@@ -91,21 +92,39 @@ function LoginScreen() {
   );
 }
 
+function ScreenFallback({ error, reset }: { error: Error; reset: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+      <p className="text-fg-primary font-semibold">Algo falló en esta pantalla</p>
+      <p className="text-fg-muted text-sm mt-1 max-w-xs">{error.message}</p>
+      <button type="button" onClick={reset} className="btn-ghost mt-4 text-sm">
+        Reintentar
+      </button>
+    </div>
+  );
+}
+
 function CurrentScreen() {
   const { screen } = useRouter();
 
-  switch (screen.name) {
-    case 'products':
-      return <ProductList />;
-    case 'product-form':
-      return <ProductForm productId={screen.productId} />;
-    case 'quick-sale':
-      return <QuickSale />;
-    case 'sale-success':
-      return <SaleSuccess total={screen.total} />;
-    case 'daily-summary':
-      return <DailySummary />;
-  }
+  return (
+    <ErrorBoundary key={screen.name} fallback={ScreenFallback}>
+      {(() => {
+        switch (screen.name) {
+          case 'products':
+            return <ProductList />;
+          case 'product-form':
+            return <ProductForm productId={screen.productId} />;
+          case 'quick-sale':
+            return <QuickSale />;
+          case 'sale-success':
+            return <SaleSuccess total={screen.total} />;
+          case 'daily-summary':
+            return <DailySummary />;
+        }
+      })()}
+    </ErrorBoundary>
+  );
 }
 
 function MainScreen() {

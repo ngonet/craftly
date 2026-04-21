@@ -9,7 +9,7 @@
 // (see QuickSaleUseCase). The client just sends productId + quantity.
 
 import type { MetodoPago, Product } from '@craftly/shared';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from '../../shared/lib/router';
 import { useProducts } from '../products/api';
 import { usePendingSales, useQuickSale } from './api';
@@ -22,6 +22,23 @@ interface CartItem {
   maxStock: number;
 }
 
+const CART_KEY = 'craftly:cart';
+const METODO_KEY = 'craftly:cart-metodo';
+
+function loadCart(): Map<string, CartItem> {
+  try {
+    const raw = sessionStorage.getItem(CART_KEY);
+    if (!raw) return new Map();
+    return new Map(JSON.parse(raw) as [string, CartItem][]);
+  } catch {
+    return new Map();
+  }
+}
+
+function loadMetodo(): MetodoPago {
+  return sessionStorage.getItem(METODO_KEY) === 'TRANSFERENCIA' ? 'TRANSFERENCIA' : 'EFECTIVO';
+}
+
 export function QuickSale() {
   const { navigate } = useRouter();
   const { data: products, isLoading } = useProducts();
@@ -29,8 +46,16 @@ export function QuickSale() {
 
   const pendingCount = usePendingSales();
 
-  const [cart, setCart] = useState<Map<string, CartItem>>(new Map());
-  const [metodoPago, setMetodoPago] = useState<MetodoPago>('EFECTIVO');
+  const [cart, setCart] = useState<Map<string, CartItem>>(loadCart);
+  const [metodoPago, setMetodoPago] = useState<MetodoPago>(loadMetodo);
+
+  useEffect(() => {
+    sessionStorage.setItem(CART_KEY, JSON.stringify([...cart.entries()]));
+  }, [cart]);
+
+  useEffect(() => {
+    sessionStorage.setItem(METODO_KEY, metodoPago);
+  }, [metodoPago]);
 
   const addToCart = useCallback((product: Product) => {
     setCart((prev) => {
@@ -88,6 +113,8 @@ export function QuickSale() {
     });
 
     setCart(new Map());
+    sessionStorage.removeItem(CART_KEY);
+    sessionStorage.removeItem(METODO_KEY);
     navigate({ name: 'sale-success', total: result.total });
   }
 
