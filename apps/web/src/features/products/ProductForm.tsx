@@ -7,74 +7,35 @@
 // On form submit, we call imageHandle.upload() which compresses and
 // uploads to Supabase Storage, then we pass the URL to the API.
 
-import { useEffect, useRef, useState } from 'react';
-import { useAuth } from '../../shared/lib/auth';
-import { useRouter } from '../../shared/lib/router';
+import { useRef } from 'react';
 import { ImageUpload, type ImageUploadRef } from './ImageUpload';
-import { useCreateProduct, useDeleteProduct, useProduct, useUpdateProduct } from './api';
+import { useProductForm } from './useProductForm';
 
 export function ProductForm({ productId }: { productId?: string }) {
-  const { goBack } = useRouter();
-  const { user } = useAuth();
-  const { data: existing, isLoading } = useProduct(productId);
-  const createMutation = useCreateProduct();
-  const updateMutation = useUpdateProduct();
-  const deleteMutation = useDeleteProduct();
-
-  const [name, setName] = useState('');
-  const [costoBase, setCostoBase] = useState('');
-  const [priceSale, setPriceSale] = useState('');
-  const [stock, setStock] = useState('');
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
-
   const imageRef = useRef<ImageUploadRef>(null);
-
-  const isEditing = !!productId;
-  const isSaving = createMutation.isPending || updateMutation.isPending;
-  const saveError = createMutation.error || updateMutation.error;
-
-  // Populate form when editing
-  useEffect(() => {
-    if (existing) {
-      setName(existing.name);
-      setCostoBase(existing.costoBase);
-      setPriceSale(existing.priceSale);
-      setStock(String(existing.stock));
-    }
-  }, [existing]);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!user) return;
-
-    // Upload image first (no-op if no file staged).
-    const imageUrl = (await imageRef.current?.upload(user.id, productId)) ?? null;
-
-    const data = {
-      name: name.trim(),
-      costoBase,
-      priceSale,
-      stock: Number(stock),
-      imageUrl,
-    };
-
-    if (isEditing && productId) {
-      await updateMutation.mutateAsync({ id: productId, data });
-    } else {
-      await createMutation.mutateAsync(data);
-    }
-    goBack();
-  }
-
-  async function handleDelete() {
-    if (!productId) return;
-    if (!deleteConfirm) {
-      setDeleteConfirm(true);
-      return;
-    }
-    await deleteMutation.mutateAsync(productId);
-    goBack();
-  }
+  const {
+    goBack,
+    name,
+    setName,
+    costoBase,
+    setCostoBase,
+    priceSale,
+    setPriceSale,
+    stock,
+    setStock,
+    fieldErrors,
+    isEditing,
+    isLoading,
+    isSaving,
+    saveError,
+    existing,
+    margin,
+    deleteConfirm,
+    isDeleting,
+    deleteError,
+    handleSubmit,
+    handleDelete,
+  } = useProductForm({ productId });
 
   if (isEditing && isLoading) {
     return (
@@ -102,7 +63,10 @@ export function ProductForm({ productId }: { productId?: string }) {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+      <form
+        onSubmit={(e) => handleSubmit(e, imageRef)}
+        className="flex-1 overflow-y-auto px-5 py-5 space-y-4"
+      >
         {/* Image upload */}
         <div>
           <span className="block text-sm font-medium text-fg-secondary mb-1">
@@ -118,13 +82,13 @@ export function ProductForm({ productId }: { productId?: string }) {
           <input
             id="pf-name"
             type="text"
-            required
             maxLength={120}
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ej: Vela aromática lavanda"
             className="input"
           />
+          {fieldErrors.name && <p className="mt-1 text-xs text-danger-fg">{fieldErrors.name}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -135,7 +99,6 @@ export function ProductForm({ productId }: { productId?: string }) {
             <input
               id="pf-costo"
               type="number"
-              required
               min="0"
               step="0.01"
               value={costoBase}
@@ -144,6 +107,9 @@ export function ProductForm({ productId }: { productId?: string }) {
               className="input"
               inputMode="decimal"
             />
+            {fieldErrors.costoBase && (
+              <p className="mt-1 text-xs text-danger-fg">{fieldErrors.costoBase}</p>
+            )}
           </div>
           <div>
             <label htmlFor="pf-price" className="block text-sm font-medium text-fg-secondary mb-1">
@@ -152,7 +118,6 @@ export function ProductForm({ productId }: { productId?: string }) {
             <input
               id="pf-price"
               type="number"
-              required
               min="0"
               step="0.01"
               value={priceSale}
@@ -161,6 +126,9 @@ export function ProductForm({ productId }: { productId?: string }) {
               className="input"
               inputMode="decimal"
             />
+            {fieldErrors.priceSale && (
+              <p className="mt-1 text-xs text-danger-fg">{fieldErrors.priceSale}</p>
+            )}
           </div>
         </div>
 
@@ -171,7 +139,6 @@ export function ProductForm({ productId }: { productId?: string }) {
           <input
             id="pf-stock"
             type="number"
-            required
             min="0"
             step="1"
             value={stock}
@@ -180,17 +147,15 @@ export function ProductForm({ productId }: { productId?: string }) {
             className="input"
             inputMode="numeric"
           />
+          {fieldErrors.stock && <p className="mt-1 text-xs text-danger-fg">{fieldErrors.stock}</p>}
         </div>
 
         {/* Margin preview */}
-        {costoBase && priceSale && Number(priceSale) > 0 && (
+        {margin && (
           <div className="card bg-surface-muted">
             <p className="text-sm text-fg-secondary">
-              Margen:{' '}
-              <span className="font-semibold text-craft-700">
-                ${(Number(priceSale) - Number(costoBase)).toFixed(2)}
-              </span>{' '}
-              por unidad ({((1 - Number(costoBase) / Number(priceSale)) * 100).toFixed(0)}%)
+              Margen: <span className="font-semibold text-craft-700">${margin.amount}</span> por
+              unidad ({margin.pct}%)
             </p>
           </div>
         )}
@@ -209,7 +174,7 @@ export function ProductForm({ productId }: { productId?: string }) {
         {isEditing && (
           <button
             type="button"
-            disabled={deleteMutation.isPending}
+            disabled={isDeleting}
             onClick={handleDelete}
             className={`btn w-full ${
               deleteConfirm
@@ -217,7 +182,7 @@ export function ProductForm({ productId }: { productId?: string }) {
                 : 'bg-transparent text-danger-fg hover:bg-danger-soft'
             }`}
           >
-            {deleteMutation.isPending
+            {isDeleting
               ? 'Eliminando...'
               : deleteConfirm
                 ? 'Confirmar eliminación'
@@ -225,12 +190,8 @@ export function ProductForm({ productId }: { productId?: string }) {
           </button>
         )}
 
-        {deleteMutation.error && (
-          <div className="p-3 rounded-xl bg-danger-soft text-danger-fg text-sm">
-            {deleteMutation.error.message.includes('PRODUCT_HAS_SALES')
-              ? 'No se puede eliminar un producto con ventas registradas.'
-              : `Error: ${deleteMutation.error.message}`}
-          </div>
+        {deleteError && (
+          <div className="p-3 rounded-xl bg-danger-soft text-danger-fg text-sm">{deleteError}</div>
         )}
       </form>
     </div>
