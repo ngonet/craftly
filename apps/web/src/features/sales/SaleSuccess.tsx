@@ -4,6 +4,7 @@
 // or switch to the products tab.
 
 import { useRouter } from '../../shared/lib/router';
+import { CheckIcon } from '../../shared/ui/icons';
 
 export function SaleSuccess({ total }: { total: string }) {
   const { setTab } = useRouter();
@@ -11,18 +12,11 @@ export function SaleSuccess({ total }: { total: string }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60dvh] px-6 text-center">
       <div className="w-20 h-20 rounded-full bg-success-strong flex items-center justify-center mb-6">
-        <svg
+        <CheckIcon
           className="w-10 h-10 text-success-fg"
-          fill="none"
-          viewBox="0 0 24 24"
           strokeWidth={2.5}
-          stroke="currentColor"
-          role="img"
           aria-label="Venta registrada"
-        >
-          <title>Venta registrada</title>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-        </svg>
+        />
       </div>
 
       <h2 className="text-2xl font-bold text-fg-primary">Venta registrada</h2>
