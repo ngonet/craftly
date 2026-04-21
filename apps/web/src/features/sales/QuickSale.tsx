@@ -100,24 +100,24 @@ export function QuickSale() {
       {/* Product grid */}
       <div className="flex-1 overflow-y-auto px-5 pt-4 pb-48">
         {pendingCount > 0 && (
-          <div className="mb-3 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2">
+          <div className="mb-3 px-4 py-2.5 rounded-xl bg-accent-soft border border-accent flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-fg opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-fg" />
             </span>
-            <span className="text-sm text-amber-800 font-medium">
+            <span className="text-sm text-accent-fg font-medium">
               {pendingCount} {pendingCount === 1 ? 'venta pendiente' : 'ventas pendientes'} de
               sincronizar
             </span>
           </div>
         )}
 
-        {isLoading && <div className="text-center py-12 text-stone-400">Cargando...</div>}
+        {isLoading && <div className="text-center py-12 text-fg-muted">Cargando...</div>}
 
         {products && available.length === 0 && outOfStock.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-stone-400 text-lg">No tenés productos</p>
-            <p className="text-stone-400 text-sm mt-1">Crealos desde la pestaña Productos</p>
+            <p className="text-fg-muted text-lg">No tenés productos</p>
+            <p className="text-fg-muted text-sm mt-1">Crealos desde la pestaña Productos</p>
           </div>
         )}
 
@@ -134,7 +134,7 @@ export function QuickSale() {
                   disabled={remainingStock <= 0}
                   onClick={() => addToCart(product)}
                   className={`card text-left active:scale-[0.96] transition-all relative
-                    ${inCart ? 'ring-2 ring-craft-500 bg-craft-50' : ''}
+                    ${inCart ? 'ring-2 ring-craft-500 bg-accent-soft' : ''}
                     ${remainingStock <= 0 ? 'opacity-50' : ''}`}
                 >
                   {product.imageUrl ? (
@@ -144,15 +144,15 @@ export function QuickSale() {
                       className="w-full h-16 object-cover rounded-lg mb-1.5"
                     />
                   ) : (
-                    <div className="w-full h-16 rounded-lg bg-stone-100 flex items-center justify-center mb-1.5">
-                      <span className="text-stone-300 text-xl font-bold">
+                    <div className="w-full h-16 rounded-lg bg-surface-muted flex items-center justify-center mb-1.5">
+                      <span className="text-fg-muted text-xl font-bold">
                         {product.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
-                  <p className="font-semibold text-stone-900 text-sm truncate">{product.name}</p>
+                  <p className="font-semibold text-fg-primary text-sm truncate">{product.name}</p>
                   <p className="text-craft-700 font-bold mt-1">${product.priceSale}</p>
-                  <p className="text-xs text-stone-400 mt-0.5">{remainingStock} disponibles</p>
+                  <p className="text-xs text-fg-muted mt-0.5">{remainingStock} disponibles</p>
 
                   {inCart && (
                     <span
@@ -170,14 +170,14 @@ export function QuickSale() {
 
         {outOfStock.length > 0 && (
           <div className="mt-6">
-            <p className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">
+            <p className="text-xs font-medium text-fg-muted uppercase tracking-wider mb-2">
               Sin stock
             </p>
             <div className="grid grid-cols-2 gap-3 opacity-40">
               {outOfStock.map((product) => (
                 <div key={product.id} className="card">
-                  <p className="font-semibold text-stone-900 text-sm truncate">{product.name}</p>
-                  <p className="text-stone-400 font-bold mt-1">${product.priceSale}</p>
+                  <p className="font-semibold text-fg-primary text-sm truncate">{product.name}</p>
+                  <p className="text-fg-muted font-bold mt-1">${product.priceSale}</p>
                 </div>
               ))}
             </div>
@@ -187,11 +187,11 @@ export function QuickSale() {
 
       {/* Cart panel — fixed at bottom */}
       {cartItems.length > 0 && (
-        <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-stone-200 shadow-lg px-5 py-4 space-y-3">
+        <div className="fixed bottom-16 left-0 right-0 bg-surface-card border-t border-subtle shadow-lg px-5 py-4 space-y-3">
           {/* Cart items summary */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-stone-600">
+              <span className="text-sm text-fg-secondary">
                 {itemCount} {itemCount === 1 ? 'item' : 'items'}
               </span>
               {cartItems.map((item) => (
@@ -199,17 +199,17 @@ export function QuickSale() {
                   key={item.productId}
                   type="button"
                   onClick={() => removeFromCart(item.productId)}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-100
-                             text-xs text-stone-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-muted
+                             text-xs text-fg-secondary hover:bg-danger-soft hover:text-danger-fg transition-colors"
                   title={`Quitar 1 ${item.name}`}
                 >
                   {item.name.slice(0, 8)}
                   {item.quantity > 1 && <span>×{item.quantity}</span>}
-                  <span className="text-stone-400">×</span>
+                  <span className="text-fg-muted">×</span>
                 </button>
               ))}
             </div>
-            <span className="text-lg font-bold text-stone-900">${total.toFixed(2)}</span>
+            <span className="text-lg font-bold text-fg-primary">${total.toFixed(2)}</span>
           </div>
 
           {/* Payment method toggle */}
@@ -220,7 +220,7 @@ export function QuickSale() {
               className={`flex-1 min-h-touch rounded-xl text-sm font-semibold transition-colors ${
                 metodoPago === 'EFECTIVO'
                   ? 'bg-craft-600 text-white'
-                  : 'bg-stone-100 text-stone-600'
+                  : 'bg-surface-muted text-fg-secondary'
               }`}
             >
               Efectivo
@@ -231,7 +231,7 @@ export function QuickSale() {
               className={`flex-1 min-h-touch rounded-xl text-sm font-semibold transition-colors ${
                 metodoPago === 'TRANSFERENCIA'
                   ? 'bg-craft-600 text-white'
-                  : 'bg-stone-100 text-stone-600'
+                  : 'bg-surface-muted text-fg-secondary'
               }`}
             >
               Transferencia
@@ -249,7 +249,7 @@ export function QuickSale() {
           </button>
 
           {saleMutation.error && (
-            <p className="text-red-600 text-sm text-center">
+            <p className="text-danger-fg text-sm text-center">
               {saleMutation.error.message.includes('INSUFFICIENT_STOCK')
                 ? 'Stock insuficiente — alguien vendió antes que vos'
                 : `Error: ${saleMutation.error.message}`}

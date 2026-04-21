@@ -79,7 +79,7 @@ export function ProductForm({ productId }: { productId?: string }) {
   if (isEditing && isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-stone-400">Cargando...</p>
+        <p className="text-fg-muted">Cargando...</p>
       </div>
     );
   }
@@ -87,7 +87,7 @@ export function ProductForm({ productId }: { productId?: string }) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-stone-200">
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-subtle">
         <button
           type="button"
           onClick={goBack}
@@ -96,7 +96,7 @@ export function ProductForm({ productId }: { productId?: string }) {
         >
           ← Volver
         </button>
-        <h2 className="text-lg font-bold text-stone-900">
+        <h2 className="text-lg font-bold text-fg-primary">
           {isEditing ? 'Editar producto' : 'Nuevo producto'}
         </h2>
       </div>
@@ -105,12 +105,14 @@ export function ProductForm({ productId }: { productId?: string }) {
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
         {/* Image upload */}
         <div>
-          <span className="block text-sm font-medium text-stone-700 mb-1">Foto del producto</span>
+          <span className="block text-sm font-medium text-fg-secondary mb-1">
+            Foto del producto
+          </span>
           <ImageUpload ref={imageRef} currentUrl={existing?.imageUrl} />
         </div>
 
         <div>
-          <label htmlFor="pf-name" className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="pf-name" className="block text-sm font-medium text-fg-secondary mb-1">
             Nombre
           </label>
           <input
@@ -127,7 +129,7 @@ export function ProductForm({ productId }: { productId?: string }) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="pf-costo" className="block text-sm font-medium text-stone-700 mb-1">
+            <label htmlFor="pf-costo" className="block text-sm font-medium text-fg-secondary mb-1">
               Costo base ($)
             </label>
             <input
@@ -144,7 +146,7 @@ export function ProductForm({ productId }: { productId?: string }) {
             />
           </div>
           <div>
-            <label htmlFor="pf-price" className="block text-sm font-medium text-stone-700 mb-1">
+            <label htmlFor="pf-price" className="block text-sm font-medium text-fg-secondary mb-1">
               Precio venta ($)
             </label>
             <input
@@ -163,7 +165,7 @@ export function ProductForm({ productId }: { productId?: string }) {
         </div>
 
         <div>
-          <label htmlFor="pf-stock" className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="pf-stock" className="block text-sm font-medium text-fg-secondary mb-1">
             Stock inicial
           </label>
           <input
@@ -182,8 +184,8 @@ export function ProductForm({ productId }: { productId?: string }) {
 
         {/* Margin preview */}
         {costoBase && priceSale && Number(priceSale) > 0 && (
-          <div className="card bg-stone-50">
-            <p className="text-sm text-stone-600">
+          <div className="card bg-surface-muted">
+            <p className="text-sm text-fg-secondary">
               Margen:{' '}
               <span className="font-semibold text-craft-700">
                 ${(Number(priceSale) - Number(costoBase)).toFixed(2)}
@@ -194,7 +196,7 @@ export function ProductForm({ productId }: { productId?: string }) {
         )}
 
         {saveError && (
-          <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm">
+          <div className="p-3 rounded-xl bg-danger-soft text-danger-fg text-sm">
             Error al guardar: {saveError.message}
           </div>
         )}
@@ -211,8 +213,8 @@ export function ProductForm({ productId }: { productId?: string }) {
             onClick={handleDelete}
             className={`btn w-full ${
               deleteConfirm
-                ? 'bg-red-600 text-white hover:bg-red-700'
-                : 'bg-transparent text-red-600 hover:bg-red-50'
+                ? 'bg-danger-fg text-white hover:bg-danger-fg-strong'
+                : 'bg-transparent text-danger-fg hover:bg-danger-soft'
             }`}
           >
             {deleteMutation.isPending
@@ -224,7 +226,7 @@ export function ProductForm({ productId }: { productId?: string }) {
         )}
 
         {deleteMutation.error && (
-          <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm">
+          <div className="p-3 rounded-xl bg-danger-soft text-danger-fg text-sm">
             {deleteMutation.error.message.includes('PRODUCT_HAS_SALES')
               ? 'No se puede eliminar un producto con ventas registradas.'
               : `Error: ${deleteMutation.error.message}`}

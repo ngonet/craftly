@@ -10,20 +10,20 @@ import { useProducts } from './api';
 function StockBadge({ stock }: { stock: number }) {
   if (stock === 0) {
     return (
-      <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-700">
+      <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-danger-strong text-danger-fg">
         Sin stock
       </span>
     );
   }
   if (stock <= 5) {
     return (
-      <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-700">
+      <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-accent-strong text-accent-fg">
         {stock} uds
       </span>
     );
   }
   return (
-    <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+    <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-success-strong text-success-fg">
       {stock} uds
     </span>
   );
@@ -49,13 +49,13 @@ export function ProductList() {
 
       {/* Product list */}
       <div className="flex-1 overflow-y-auto px-5 pb-24">
-        {isLoading && <div className="text-center py-12 text-stone-400">Cargando...</div>}
+        {isLoading && <div className="text-center py-12 text-fg-muted">Cargando...</div>}
 
-        {error && <div className="text-center py-12 text-red-600">Error al cargar productos</div>}
+        {error && <div className="text-center py-12 text-danger-fg">Error al cargar productos</div>}
 
         {products && products.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-stone-400 text-lg">
+            <p className="text-fg-muted text-lg">
               {search ? 'Sin resultados' : 'No tenés productos todavía'}
             </p>
             {!search && (
@@ -87,15 +87,15 @@ export function ProductList() {
                         className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-xl bg-stone-100 flex-shrink-0 flex items-center justify-center">
-                        <span className="text-stone-400 text-lg">
+                      <div className="w-12 h-12 rounded-xl bg-surface-muted flex-shrink-0 flex items-center justify-center">
+                        <span className="text-fg-muted text-lg">
                           {product.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-stone-900 truncate">{product.name}</p>
-                      <p className="text-sm text-stone-500 mt-0.5">
+                      <p className="font-semibold text-fg-primary truncate">{product.name}</p>
+                      <p className="text-sm text-fg-secondary mt-0.5">
                         Costo ${product.costoBase} · Venta{' '}
                         <span className="font-semibold text-craft-700">${product.priceSale}</span>
                       </p>

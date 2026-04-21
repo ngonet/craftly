@@ -7,71 +7,107 @@
     /* Prevent iOS zoom on input focus — inputs MUST be >= 16px */
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
-    /* Smooth scroll for anchor navigation */
     scroll-behavior: smooth;
     --small-text-scale: 1;
-    --surface-app: #fafaf9;
-    --surface-card: #ffffff;
-    --surface-muted: #f5f5f4;
-    --surface-strong: #e7e5e4;
-    --surface-accent: #fffbeb;
-    --surface-accent-strong: #fef3c7;
-    --surface-success: #f0fdf4;
-    --surface-success-strong: #bbf7d0;
-    --surface-info: #eff6ff;
-    --surface-info-strong: #bfdbfe;
-    --surface-danger: #fef2f2;
-    --surface-danger-strong: #fecaca;
-    --border-subtle: #e7e5e4;
-    --border-soft: #f5f5f4;
-    --text-primary: #1c1917;
-    --text-secondary: #57534e;
-    --text-muted: #a8a29e;
-    --text-on-dark: #ffffff;
-    --text-on-dark-muted: #a8a29e;
+
+    /* ── Neutrals ──────────────────────────────────────────── */
+    --surface-app: 250 250 249;
+    --surface-card: 255 255 255;
+    --surface-muted: 245 245 244;
+    --surface-strong: 231 229 228;
+    --text-primary: 28 25 23;
+    --text-secondary: 87 83 78;
+    --text-muted: 168 162 158;
+    --border-subtle: 231 229 228;
+    --border-soft: 245 245 244;
+
+    /* ── Accent (amber — warnings, highlights) ─────────────── */
+    --accent-soft: 255 251 235;
+    --accent-strong: 254 243 199;
+    --accent-border: 253 230 138;
+    --accent-fg: 146 64 14;
+    --accent-fg-strong: 120 53 15;
+
+    /* ── Success (green) ───────────────────────────────────── */
+    --success-soft: 240 253 244;
+    --success-strong: 187 247 208;
+    --success-border: 187 247 208;
+    --success-fg: 22 101 52;
+    --success-fg-strong: 20 83 45;
+
+    /* ── Info (blue) ───────────────────────────────────────── */
+    --info-soft: 239 246 255;
+    --info-strong: 219 234 254;
+    --info-border: 191 219 254;
+    --info-fg: 29 78 216;
+    --info-fg-strong: 30 64 175;
+
+    /* ── Danger (red) ──────────────────────────────────────── */
+    --danger-soft: 254 242 242;
+    --danger-strong: 254 226 226;
+    --danger-border: 254 202 202;
+    --danger-fg: 185 28 28;
+    --danger-fg-strong: 153 27 27;
   }
 
   html[data-theme='dark'] {
     color-scheme: dark;
-    --surface-app: #1c1917;
-    --surface-card: #292524;
-    --surface-muted: #44403c;
-    --surface-strong: #57534e;
-    --surface-accent: #451a03;
-    --surface-accent-strong: #78350f;
-    --surface-success: #052e16;
-    --surface-success-strong: #166534;
-    --surface-info: #172554;
-    --surface-info-strong: #1d4ed8;
-    --surface-danger: #450a0a;
-    --surface-danger-strong: #991b1b;
-    --border-subtle: #44403c;
-    --border-soft: #57534e;
-    --text-primary: #f5f5f4;
-    --text-secondary: #d6d3d1;
-    --text-muted: #a8a29e;
-    --text-on-dark: #ffffff;
-    --text-on-dark-muted: #d6d3d1;
+
+    /* ── Neutrals ──────────────────────────────────────────── */
+    --surface-app: 28 25 23;
+    --surface-card: 41 37 36;
+    --surface-muted: 68 64 60;
+    --surface-strong: 87 83 78;
+    --text-primary: 245 245 244;
+    --text-secondary: 214 211 209;
+    --text-muted: 168 162 158;
+    --border-subtle: 68 64 60;
+    --border-soft: 87 83 78;
+
+    /* ── Accent (amber, inverted for legibility) ───────────── */
+    --accent-soft: 69 26 3;
+    --accent-strong: 120 53 15;
+    --accent-border: 146 64 14;
+    --accent-fg: 253 224 71;
+    --accent-fg-strong: 254 240 138;
+
+    /* ── Success (green) ───────────────────────────────────── */
+    --success-soft: 5 46 22;
+    --success-strong: 20 83 45;
+    --success-border: 22 101 52;
+    --success-fg: 134 239 172;
+    --success-fg-strong: 187 247 208;
+
+    /* ── Info (blue) ───────────────────────────────────────── */
+    --info-soft: 23 37 84;
+    --info-strong: 30 58 138;
+    --info-border: 30 64 175;
+    --info-fg: 147 197 253;
+    --info-fg-strong: 191 219 254;
+
+    /* ── Danger (red) ──────────────────────────────────────── */
+    --danger-soft: 69 10 10;
+    --danger-strong: 127 29 29;
+    --danger-border: 153 27 27;
+    --danger-fg: 252 165 165;
+    --danger-fg-strong: 254 202 202;
   }
 
   body {
-    /* Smooth momentum scrolling on iOS */
     -webkit-overflow-scrolling: touch;
     min-height: 100dvh;
-    background-color: var(--surface-app);
-    color: var(--text-primary);
+    background-color: rgb(var(--surface-app));
+    color: rgb(var(--text-primary));
     transition:
       background-color 150ms ease,
       color 150ms ease,
       border-color 150ms ease;
   }
 
-  /* High-contrast focus ring — critical for accessibility */
   *:focus-visible {
     @apply outline-2 outline-offset-2 outline-craft-600 rounded-sm;
   }
 
-  /* Prevent text selection on interactive elements (mobile UX) */
   button,
   [role='button'] {
     -webkit-user-select: none;
@@ -87,100 +123,6 @@
 .text-sm {
   font-size: calc(0.875rem * var(--small-text-scale));
   line-height: calc(1.25rem * var(--small-text-scale));
-}
-
-.bg-white {
-  background-color: var(--surface-card);
-}
-
-.bg-stone-50 {
-  background-color: var(--surface-muted);
-}
-
-.bg-stone-100 {
-  background-color: var(--surface-muted);
-}
-
-.bg-stone-200,
-.bg-stone-300,
-.bg-stone-400 {
-  background-color: var(--surface-strong);
-}
-
-.bg-stone-900 {
-  background-color: var(--text-primary);
-}
-
-.bg-craft-50 {
-  background-color: var(--surface-accent);
-}
-
-.bg-amber-50 {
-  background-color: var(--surface-accent);
-}
-
-.bg-amber-100 {
-  background-color: var(--surface-accent-strong);
-}
-
-.bg-green-50 {
-  background-color: var(--surface-success);
-}
-
-.bg-green-100 {
-  background-color: var(--surface-success-strong);
-}
-
-.bg-blue-50 {
-  background-color: var(--surface-info);
-}
-
-.bg-red-50 {
-  background-color: var(--surface-danger);
-}
-
-.border-stone-100 {
-  border-color: var(--border-soft);
-}
-
-.border-stone-200,
-.border-stone-300 {
-  border-color: var(--border-subtle);
-}
-
-.border-amber-200 {
-  border-color: var(--surface-accent-strong);
-}
-
-.border-green-200 {
-  border-color: var(--surface-success-strong);
-}
-
-.border-blue-200 {
-  border-color: var(--surface-info-strong);
-}
-
-.border-red-200 {
-  border-color: var(--surface-danger-strong);
-}
-
-.text-stone-900 {
-  color: var(--text-primary);
-}
-
-.text-stone-700,
-.text-stone-600,
-.text-stone-500 {
-  color: var(--text-secondary);
-}
-
-.text-stone-400,
-.text-stone-300 {
-  color: var(--text-muted);
-}
-
-.text-white {
-  color: var(--text-on-dark);
 }
 
 .card,
@@ -214,29 +156,29 @@ input {
   }
 
   .btn-secondary {
-    @apply btn bg-stone-200 text-stone-900
-           hover:bg-stone-300 active:bg-stone-400;
+    @apply btn bg-surface-strong text-fg-primary
+           hover:bg-surface-strong/80 active:bg-surface-strong/90;
   }
 
   .btn-ghost {
-    @apply btn bg-transparent text-stone-700
-           hover:bg-stone-100 active:bg-stone-200;
+    @apply btn bg-transparent text-fg-secondary
+           hover:bg-surface-muted active:bg-surface-strong;
   }
 
   /* Input — 44px min height, 16px font (no iOS zoom) */
   .input {
     @apply w-full min-h-touch px-4 py-3
-           text-base bg-white
-           border border-stone-300 rounded-xl
-           placeholder:text-stone-400
+           text-base bg-surface-card
+           border border-subtle rounded-xl
+           placeholder:text-fg-muted
            focus:border-craft-500 focus:ring-2 focus:ring-craft-500/20
-           disabled:bg-stone-100 disabled:text-stone-500;
+           disabled:bg-surface-muted disabled:text-fg-muted;
   }
 
   /* Card — clean container for Modo Zen */
   .card {
-    @apply bg-white rounded-2xl p-5 shadow-sm
-           border border-stone-100;
+    @apply bg-surface-card rounded-2xl p-5 shadow-sm
+           border border-soft;
   }
 
   /* Safe area padding for notched phones (iPhone X+) */

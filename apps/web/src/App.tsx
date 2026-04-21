@@ -4,7 +4,7 @@
 // Once authenticated, the router context handles screen navigation
 // with a bottom tab bar (Productos | Vender).
 
-import { useState, type FormEvent } from 'react';
+import { type FormEvent, useState } from 'react';
 
 import { ProductForm } from './features/products/ProductForm';
 import { ProductList } from './features/products/ProductList';
@@ -22,7 +22,7 @@ function LoadingScreen() {
     <div className="flex items-center justify-center min-h-dvh">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-craft-700">Craftly</h1>
-        <p className="mt-2 text-stone-500">Cargando...</p>
+        <p className="mt-2 text-fg-secondary">Cargando...</p>
       </div>
     </div>
   );
@@ -56,7 +56,7 @@ function LoginScreen() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-craft-700">Craftly</h1>
-          <p className="mt-2 text-stone-600 text-lg">Tu inventario de feria, simple.</p>
+          <p className="mt-2 text-fg-secondary text-lg">Tu inventario de feria, simple.</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -76,14 +76,14 @@ function LoginScreen() {
         {feedbackMessage ? (
           <p
             className={`mt-4 text-sm ${
-              feedbackTone === 'error' ? 'text-red-600' : 'text-emerald-600'
+              feedbackTone === 'error' ? 'text-danger-fg' : 'text-success-fg'
             }`}
           >
             {feedbackMessage}
           </p>
         ) : null}
 
-        <p className="mt-6 text-center text-sm text-stone-400">
+        <p className="mt-6 text-center text-sm text-fg-muted">
           Te enviamos un link mágico. Sin contraseñas.
         </p>
       </div>
@@ -127,14 +127,12 @@ function MainScreen() {
   return (
     <div className="min-h-dvh flex flex-col pb-16">
       {/* Header */}
-      <header
-        className="flex items-center justify-between gap-3 px-5 py-4 border-b border-stone-200"
-      >
+      <header className="flex items-center justify-between gap-3 px-5 py-4 border-b border-subtle">
         <div>
           <h1 className="text-xl font-bold text-craft-700">Craftly</h1>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          <div className="inline-flex items-center rounded-xl border border-stone-200 bg-white p-1">
+          <div className="inline-flex items-center rounded-xl border border-subtle bg-surface-card p-1">
             <button
               type="button"
               onClick={decreaseSmallText}
@@ -142,13 +140,13 @@ function MainScreen() {
               aria-label="Reducir fuentes pequeñas"
               className={
                 'inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm ' +
-                'font-semibold text-stone-700 transition-colors hover:bg-stone-100 ' +
-                'disabled:text-stone-300 disabled:hover:bg-transparent'
+                'font-semibold text-fg-primary transition-colors hover:bg-surface-muted ' +
+                'disabled:text-fg-muted disabled:hover:bg-transparent'
               }
             >
               -
             </button>
-            <span className="px-2 text-xs font-semibold uppercase tracking-wider text-stone-400">
+            <span className="px-2 text-xs font-semibold uppercase tracking-wider text-fg-muted">
               Aa
             </span>
             <button
@@ -158,8 +156,8 @@ function MainScreen() {
               aria-label="Aumentar fuentes pequeñas"
               className={
                 'inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm ' +
-                'font-semibold text-stone-700 transition-colors hover:bg-stone-100 ' +
-                'disabled:text-stone-300 disabled:hover:bg-transparent'
+                'font-semibold text-fg-primary transition-colors hover:bg-surface-muted ' +
+                'disabled:text-fg-muted disabled:hover:bg-transparent'
               }
             >
               +
@@ -173,7 +171,7 @@ function MainScreen() {
           >
             {theme === 'dark' ? '☀️ Claro' : '🌙 Oscuro'}
           </button>
-          <span className="text-sm text-stone-400 hidden sm:inline">{user?.email}</span>
+          <span className="text-sm text-fg-muted hidden sm:inline">{user?.email}</span>
           <button type="button" onClick={handleLogout} className="btn-ghost text-sm">
             Salir
           </button>

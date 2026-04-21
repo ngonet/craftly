@@ -37,10 +37,10 @@ function formatDate(): string {
 
 function HeroCard({ total, salesCount }: { total: string; salesCount: number }) {
   return (
-    <div className="bg-stone-900 text-white rounded-2xl px-6 py-5">
-      <p className="text-stone-400 text-sm font-medium uppercase tracking-wider">Total recaudado</p>
+    <div className="bg-fg-primary text-surface-card rounded-2xl px-6 py-5">
+      <p className="text-fg-muted text-sm font-medium uppercase tracking-wider">Total recaudado</p>
       <p className="text-4xl font-extrabold mt-1 tracking-tight">${formatMoney(total)}</p>
-      <p className="text-stone-400 text-sm mt-1">
+      <p className="text-fg-muted text-sm mt-1">
         {salesCount} {salesCount === 1 ? 'venta' : 'ventas'} hoy
       </p>
     </div>
@@ -54,25 +54,23 @@ function PaymentBreakdown({ data }: { data: DailySummaryType['byMetodoPago'] }) 
   return (
     <div className="grid grid-cols-2 gap-3">
       {/* Efectivo — THE number for the fanny pack */}
-      <div className="bg-green-50 border-2 border-green-200 rounded-2xl px-4 py-4">
-        <p className="text-green-800 text-xs font-semibold uppercase tracking-wider">Efectivo</p>
-        <p className="text-green-900 text-2xl font-extrabold mt-1">
+      <div className="bg-success-soft border-2 border-success rounded-2xl px-4 py-4">
+        <p className="text-success-fg text-xs font-semibold uppercase tracking-wider">Efectivo</p>
+        <p className="text-success-fg-strong text-2xl font-extrabold mt-1">
           ${formatMoney(efectivo?.total ?? '0.00')}
         </p>
-        <p className="text-green-600 text-xs mt-0.5">
+        <p className="text-success-fg text-xs mt-0.5">
           {efectivo?.count ?? 0} {(efectivo?.count ?? 0) === 1 ? 'venta' : 'ventas'}
         </p>
       </div>
 
       {/* Transferencia */}
-      <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl px-4 py-4">
-        <p className="text-blue-800 text-xs font-semibold uppercase tracking-wider">
-          Transferencia
-        </p>
-        <p className="text-blue-900 text-2xl font-extrabold mt-1">
+      <div className="bg-info-soft border-2 border-info rounded-2xl px-4 py-4">
+        <p className="text-info-fg text-xs font-semibold uppercase tracking-wider">Transferencia</p>
+        <p className="text-info-fg-strong text-2xl font-extrabold mt-1">
           ${formatMoney(transferencia?.total ?? '0.00')}
         </p>
-        <p className="text-blue-600 text-xs mt-0.5">
+        <p className="text-info-fg text-xs mt-0.5">
           {transferencia?.count ?? 0} {(transferencia?.count ?? 0) === 1 ? 'venta' : 'ventas'}
         </p>
       </div>
@@ -89,28 +87,28 @@ function ProfitCard({
 
   return (
     <div
-      className={`rounded-2xl px-5 py-4 border-2 ${isPositive ? 'bg-craft-50 border-craft-200' : 'bg-red-50 border-red-200'}`}
+      className={`rounded-2xl px-5 py-4 border-2 ${isPositive ? 'bg-accent-soft border-accent' : 'bg-danger-soft border-danger'}`}
     >
       <div className="flex items-center justify-between">
         <div>
           <p
-            className={`text-xs font-semibold uppercase tracking-wider ${isPositive ? 'text-craft-800' : 'text-red-800'}`}
+            className={`text-xs font-semibold uppercase tracking-wider ${isPositive ? 'text-accent-fg' : 'text-danger-fg'}`}
           >
             Ganancia real
           </p>
           <p
-            className={`text-3xl font-extrabold mt-1 ${isPositive ? 'text-craft-900' : 'text-red-900'}`}
+            className={`text-3xl font-extrabold mt-1 ${isPositive ? 'text-accent-fg-strong' : 'text-danger-fg-strong'}`}
           >
             ${formatMoney(utilidad)}
           </p>
         </div>
         <div className="text-right text-xs space-y-0.5">
-          <p className="text-stone-500">
+          <p className="text-fg-secondary">
             Ventas:{' '}
-            <span className="font-semibold text-stone-700">${formatMoney(totalVentas)}</span>
+            <span className="font-semibold text-fg-primary">${formatMoney(totalVentas)}</span>
           </p>
-          <p className="text-stone-500">
-            Costo: <span className="font-semibold text-stone-700">${formatMoney(totalCosto)}</span>
+          <p className="text-fg-secondary">
+            Costo: <span className="font-semibold text-fg-primary">${formatMoney(totalCosto)}</span>
           </p>
         </div>
       </div>
@@ -122,16 +120,16 @@ function SaleRow({ sale }: { sale: SaleDto }) {
   const itemSummary = sale.items.map((item) => `${item.quantity}x`).join(', ');
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-stone-100 last:border-0">
+    <div className="flex items-center justify-between py-3 border-b border-soft last:border-0">
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-stone-900 truncate">{itemSummary}</p>
-        <p className="text-xs text-stone-400 mt-0.5">
+        <p className="text-sm font-medium text-fg-primary truncate">{itemSummary}</p>
+        <p className="text-xs text-fg-muted mt-0.5">
           {formatTime(sale.createdAt)}
-          <span className="mx-1.5 text-stone-300">·</span>
+          <span className="mx-1.5 text-fg-muted">·</span>
           {sale.metodoPago === 'EFECTIVO' ? 'Efectivo' : 'Transferencia'}
         </p>
       </div>
-      <p className="text-sm font-bold text-stone-900 ml-3">${formatMoney(sale.total)}</p>
+      <p className="text-sm font-bold text-fg-primary ml-3">${formatMoney(sale.total)}</p>
     </div>
   );
 }
@@ -139,9 +137,9 @@ function SaleRow({ sale }: { sale: SaleDto }) {
 function EmptyState() {
   return (
     <div className="text-center py-16">
-      <div className="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center mx-auto mb-4">
+      <div className="w-16 h-16 rounded-full bg-surface-muted flex items-center justify-center mx-auto mb-4">
         <svg
-          className="w-8 h-8 text-stone-400"
+          className="w-8 h-8 text-fg-muted"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={1.5}
@@ -157,8 +155,8 @@ function EmptyState() {
           />
         </svg>
       </div>
-      <p className="text-stone-500 text-lg font-medium">No hay ventas hoy</p>
-      <p className="text-stone-400 text-sm mt-1">
+      <p className="text-fg-secondary text-lg font-medium">No hay ventas hoy</p>
+      <p className="text-fg-muted text-sm mt-1">
         Las ventas van a aparecer acá a medida que vendas
       </p>
     </div>
@@ -175,7 +173,7 @@ export function DailySummary() {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-craft-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-stone-400 text-sm mt-3">Cargando resumen...</p>
+          <p className="text-fg-muted text-sm mt-3">Cargando resumen...</p>
         </div>
       </div>
     );
@@ -184,8 +182,8 @@ export function DailySummary() {
   if (error) {
     return (
       <div className="px-5 py-12 text-center">
-        <p className="text-red-600 font-medium">No se pudo cargar el resumen</p>
-        <p className="text-stone-400 text-sm mt-1">{error.message}</p>
+        <p className="text-danger-fg font-medium">No se pudo cargar el resumen</p>
+        <p className="text-fg-muted text-sm mt-1">{error.message}</p>
       </div>
     );
   }
@@ -193,7 +191,7 @@ export function DailySummary() {
   if (!data || data.salesCount === 0) {
     return (
       <div className="px-5 pt-4">
-        <h2 className="text-lg font-bold text-stone-900 capitalize">{formatDate()}</h2>
+        <h2 className="text-lg font-bold text-fg-primary capitalize">{formatDate()}</h2>
         <EmptyState />
       </div>
     );
@@ -202,7 +200,7 @@ export function DailySummary() {
   return (
     <div className="px-5 pt-4 pb-6 space-y-4">
       {/* Date header */}
-      <h2 className="text-lg font-bold text-stone-900 capitalize">{formatDate()}</h2>
+      <h2 className="text-lg font-bold text-fg-primary capitalize">{formatDate()}</h2>
 
       {/* Hero — total recaudado */}
       <HeroCard total={data.totalVentas} salesCount={data.salesCount} />
@@ -219,10 +217,10 @@ export function DailySummary() {
 
       {/* Sales feed */}
       <div>
-        <h3 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
+        <h3 className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-2">
           Ventas del dia
         </h3>
-        <div className="bg-white rounded-2xl border border-stone-200 px-4">
+        <div className="bg-surface-card rounded-2xl border border-subtle px-4">
           {data.sales.map((sale) => (
             <SaleRow key={sale.id} sale={sale} />
           ))}

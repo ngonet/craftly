@@ -27,7 +27,7 @@ export function BottomNav() {
   const { activeTab, setTab } = useRouter();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-surface-card border-t border-subtle safe-area-bottom">
       <div className="flex">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -37,7 +37,7 @@ export function BottomNav() {
               type="button"
               onClick={() => setTab(tab.id)}
               className={`flex-1 flex flex-col items-center gap-0.5 py-2 min-h-touch transition-colors
-                ${isActive ? 'text-craft-700' : 'text-stone-400'}`}
+                ${isActive ? 'text-craft-700' : 'text-fg-muted'}`}
             >
               <svg
                 className="w-6 h-6"
@@ -45,7 +45,10 @@ export function BottomNav() {
                 viewBox="0 0 24 24"
                 strokeWidth={isActive ? 2 : 1.5}
                 stroke="currentColor"
+                role="img"
+                aria-label={tab.label}
               >
+                <title>{tab.label}</title>
                 <path strokeLinecap="round" strokeLinejoin="round" d={tab.icon} />
               </svg>
               <span className={`text-xs ${isActive ? 'font-semibold' : ''}`}>{tab.label}</span>
