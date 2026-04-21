@@ -132,7 +132,6 @@ function MainScreen() {
       >
         <div>
           <h1 className="text-xl font-bold text-craft-700">Craftly</h1>
-          <p className="mt-0.5 text-xs text-stone-400">Modo lectura para fuentes chicas</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           <div className="inline-flex items-center rounded-xl border border-stone-200 bg-white p-1">
