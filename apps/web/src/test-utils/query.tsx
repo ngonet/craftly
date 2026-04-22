@@ -6,7 +6,7 @@ export function createTestQueryClient() {
     defaultOptions: {
       queries: {
         retry: false,
-        gcTime: Infinity,
+        gcTime: Number.POSITIVE_INFINITY,
       },
       mutations: {
         retry: false,
@@ -21,8 +21,6 @@ export function createQueryClientWrapper(queryClient: QueryClient) {
   }: {
     children: ReactNode;
   }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }

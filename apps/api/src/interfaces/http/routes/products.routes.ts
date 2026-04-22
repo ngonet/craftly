@@ -7,13 +7,9 @@
 // prevents wasted queries on malformed IDs and returns a clean 400
 // instead of a confusing Prisma error.
 
+import { CreateProductInputSchema, UpdateProductInputSchema, Uuid } from '@craftly/shared';
 import type { PrismaClient } from '@prisma/client';
 import type { FastifyPluginAsync } from 'fastify';
-import {
-  CreateProductInputSchema,
-  UpdateProductInputSchema,
-  Uuid,
-} from '@craftly/shared';
 import { ProductService } from '../../../application/products/product.service.js';
 
 export function createProductRoutes(prisma: PrismaClient): FastifyPluginAsync {
@@ -38,86 +34,70 @@ export function createProductRoutes(prisma: PrismaClient): FastifyPluginAsync {
     });
 
     // ── GET / — List products (optional search) ───────
-    fastify.get<{ Querystring: { search?: string } }>(
-      '/',
-      async (request) => {
-        return service.listByUser(request.user.id, request.query.search);
-      },
-    );
+    fastify.get<{ Querystring: { search?: string } }>('/', async (request) => {
+      return service.listByUser(request.user.id, request.query.search);
+    });
 
     // ── GET /:id — Get product by ID ──────────────────
-    fastify.get<{ Params: { id: string } }>(
-      '/:id',
-      async (request, reply) => {
-        const idResult = Uuid.safeParse(request.params.id);
-        if (!idResult.success) {
-          return reply.code(400).send({ error: 'INVALID_ID' });
-        }
+    fastify.get<{ Params: { id: string } }>('/:id', async (request, reply) => {
+      const idResult = Uuid.safeParse(request.params.id);
+      if (!idResult.success) {
+        return reply.code(400).send({ error: 'INVALID_ID' });
+      }
 
-        const product = await service.getById(request.user.id, idResult.data);
-        if (!product) {
-          return reply.code(404).send({ error: 'PRODUCT_NOT_FOUND' });
-        }
-        return product;
-      },
-    );
+      const product = await service.getById(request.user.id, idResult.data);
+      if (!product) {
+        return reply.code(404).send({ error: 'PRODUCT_NOT_FOUND' });
+      }
+      return product;
+    });
 
     // ── PATCH /:id — Partial update ───────────────────
-    fastify.patch<{ Params: { id: string } }>(
-      '/:id',
-      async (request, reply) => {
-        const idResult = Uuid.safeParse(request.params.id);
-        if (!idResult.success) {
-          return reply.code(400).send({ error: 'INVALID_ID' });
-        }
+    fastify.patch<{ Params: { id: string } }>('/:id', async (request, reply) => {
+      const idResult = Uuid.safeParse(request.params.id);
+      if (!idResult.success) {
+        return reply.code(400).send({ error: 'INVALID_ID' });
+      }
 
-        const parsed = UpdateProductInputSchema.safeParse(request.body);
-        if (!parsed.success) {
-          return reply.code(400).send({
-            error: 'VALIDATION_ERROR',
-            details: parsed.error.flatten().fieldErrors,
-          });
-        }
+      const parsed = UpdateProductInputSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.code(400).send({
+          error: 'VALIDATION_ERROR',
+          details: parsed.error.flatten().fieldErrors,
+        });
+      }
 
-        if (Object.keys(parsed.data).length === 0) {
-          return reply.code(400).send({ error: 'EMPTY_UPDATE' });
-        }
+      if (Object.keys(parsed.data).length === 0) {
+        return reply.code(400).send({ error: 'EMPTY_UPDATE' });
+      }
 
-        const product = await service.update(
-          request.user.id,
-          idResult.data,
-          parsed.data,
-        );
-        if (!product) {
-          return reply.code(404).send({ error: 'PRODUCT_NOT_FOUND' });
-        }
-        return product;
-      },
-    );
+      const product = await service.update(request.user.id, idResult.data, parsed.data);
+      if (!product) {
+        return reply.code(404).send({ error: 'PRODUCT_NOT_FOUND' });
+      }
+      return product;
+    });
 
     // ── DELETE /:id — Delete product ──────────────────
-    fastify.delete<{ Params: { id: string } }>(
-      '/:id',
-      async (request, reply) => {
-        const idResult = Uuid.safeParse(request.params.id);
-        if (!idResult.success) {
-          return reply.code(400).send({ error: 'INVALID_ID' });
-        }
+    fastify.delete<{ Params: { id: string } }>('/:id', async (request, reply) => {
+      const idResult = Uuid.safeParse(request.params.id);
+      if (!idResult.success) {
+        return reply.code(400).send({ error: 'INVALID_ID' });
+      }
 
-        const result = await service.delete(request.user.id, idResult.data);
+      const result = await service.delete(request.user.id, idResult.data);
 
-        switch (result) {
-          case 'deleted':
-            return reply.code(204).send();
-          case 'not_found':
-            return reply.code(404).send({ error: 'PRODUCT_NOT_FOUND' });
-          case 'has_sales':
-            return reply.code(409).send({
-              error: 'PRODUCT_HAS_SALES',
-              message: 'cannot delete a product with existing sales history',
-            });
-        }
-      },
-    );
+      switch (result) {
+        case 'deleted':
+          return reply.code(204).send();
+        case 'not_found':
+          return reply.code(404).send({ error: 'PRODUCT_NOT_FOUND' });
+        case 'has_sales':
+          return reply.code(409).send({
+            error: 'PRODUCT_HAS_SALES',
+            message: 'cannot delete a product with existing sales history',
+          });
+      }
+    });
   };
 }

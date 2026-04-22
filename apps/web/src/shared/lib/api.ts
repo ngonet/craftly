@@ -30,10 +30,7 @@ interface FetchOptions extends Omit<RequestInit, 'body'> {
   json?: unknown;
 }
 
-export async function apiFetch<T = unknown>(
-  path: string,
-  options?: FetchOptions,
-): Promise<T> {
+export async function apiFetch<T = unknown>(path: string, options?: FetchOptions): Promise<T> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -42,9 +39,7 @@ export async function apiFetch<T = unknown>(
 
   const headers: HeadersInit = {
     ...(json !== undefined ? { 'Content-Type': 'application/json' } : {}),
-    ...(session?.access_token
-      ? { Authorization: `Bearer ${session.access_token}` }
-      : {}),
+    ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
     ...fetchOptions.headers,
   };
 

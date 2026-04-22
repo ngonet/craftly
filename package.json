@@ -12,10 +12,7 @@
   },
   "homepage": "https://github.com/ngonet/craftly#readme",
   "license": "UNLICENSED",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

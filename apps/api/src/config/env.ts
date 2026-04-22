@@ -9,26 +9,20 @@ const trimEnvString = (value: unknown) => {
   return value.trim();
 };
 
-const requiredEnvString = () =>
-  z.preprocess(trimEnvString, z.string().min(1));
+const requiredEnvString = () => z.preprocess(trimEnvString, z.string().min(1));
 
 const optionalEnvString = () =>
-  z.preprocess(
-    (value) => {
-      const trimmed = trimEnvString(value);
-      if (typeof trimmed !== 'string') return trimmed;
-      return trimmed === '' ? undefined : trimmed;
-    },
-    z.string().min(1).optional(),
-  );
+  z.preprocess((value) => {
+    const trimmed = trimEnvString(value);
+    if (typeof trimmed !== 'string') return trimmed;
+    return trimmed === '' ? undefined : trimmed;
+  }, z.string().min(1).optional());
 
 const EnvSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     PORT: z.coerce.number().int().positive().default(3001),
-    LOG_LEVEL: z
-      .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
-      .default('info'),
+    LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
     CORS_ORIGIN: z.string().default('http://localhost:5173'),
 
     // Prisma — see .env.example for the pooler vs direct distinction.
@@ -37,18 +31,14 @@ const EnvSchema = z
 
     // Supabase JWT verification.
     SUPABASE_JWT_ISSUER: requiredEnvString().pipe(z.string().url()),
-    SUPABASE_JWT_AUDIENCE: z
-      .preprocess(trimEnvString, z.string().min(1).default('authenticated')),
+    SUPABASE_JWT_AUDIENCE: z.preprocess(trimEnvString, z.string().min(1).default('authenticated')),
     SUPABASE_JWKS_URL: optionalEnvString().pipe(z.string().url().optional()),
     SUPABASE_JWT_SECRET: optionalEnvString(),
   })
-  .refine(
-    (data) => Boolean(data.SUPABASE_JWKS_URL) || Boolean(data.SUPABASE_JWT_SECRET),
-    {
-      message: 'must provide either SUPABASE_JWKS_URL or SUPABASE_JWT_SECRET',
-      path: ['SUPABASE_JWKS_URL'],
-    },
-  );
+  .refine((data) => Boolean(data.SUPABASE_JWKS_URL) || Boolean(data.SUPABASE_JWT_SECRET), {
+    message: 'must provide either SUPABASE_JWKS_URL or SUPABASE_JWT_SECRET',
+    path: ['SUPABASE_JWKS_URL'],
+  });
 
 export type Env = z.infer<typeof EnvSchema>;
 

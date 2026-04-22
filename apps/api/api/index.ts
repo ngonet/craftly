@@ -26,12 +26,8 @@ function applyCorsFallback(req: IncomingMessage, res: ServerResponse): void {
     return;
   }
 
-  const requestOrigin =
-    typeof req.headers.origin === 'string' ? req.headers.origin : undefined;
-  const allowedOrigin = resolveAllowedOrigin(
-    allowedOrigins,
-    requestOrigin,
-  );
+  const requestOrigin = typeof req.headers.origin === 'string' ? req.headers.origin : undefined;
+  const allowedOrigin = resolveAllowedOrigin(allowedOrigins, requestOrigin);
 
   if (!allowedOrigin) return;
 
@@ -51,10 +47,7 @@ async function initApp() {
   return app;
 }
 
-export default async function handler(
-  req: IncomingMessage,
-  res: ServerResponse,
-): Promise<void> {
+export default async function handler(req: IncomingMessage, res: ServerResponse): Promise<void> {
   try {
     if (!appPromise) appPromise = initApp();
     const app = await appPromise;

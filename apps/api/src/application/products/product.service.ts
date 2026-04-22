@@ -5,8 +5,8 @@
 // SaleItem (onDelete: Restrict) and returns a discriminated result
 // so the route can send a meaningful 409.
 
-import { Prisma, type PrismaClient, type Product } from '@prisma/client';
 import type { CreateProductInput, UpdateProductInput } from '@craftly/shared';
+import { Prisma, type PrismaClient, type Product } from '@prisma/client';
 
 export type DeleteResult = 'deleted' | 'not_found' | 'has_sales';
 
@@ -75,10 +75,7 @@ export class ProductService {
       // P2003: foreign key constraint failed — product has SaleItems.
       // The schema uses onDelete: Restrict on SaleItem → Product,
       // so Postgres rejects the DELETE with an FK violation.
-      if (
-        err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === 'P2003'
-      ) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') {
         return 'has_sales';
       }
       throw err;

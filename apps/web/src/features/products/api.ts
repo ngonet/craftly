@@ -4,16 +4,8 @@
 // No optimistic updates yet — fair wifi is unreliable enough that
 // we want server confirmation before showing changes.
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
-import type {
-  CreateProductInput,
-  Product,
-  UpdateProductInput,
-} from '@craftly/shared';
+import type { CreateProductInput, Product, UpdateProductInput } from '@craftly/shared';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../shared/lib/api';
 import { productKeys } from './query-keys';
 
@@ -21,9 +13,7 @@ export function useProducts(search?: string) {
   return useQuery({
     queryKey: productKeys.list(search),
     queryFn: () =>
-      apiFetch<Product[]>(
-        `/api/products${search ? `?search=${encodeURIComponent(search)}` : ''}`,
-      ),
+      apiFetch<Product[]>(`/api/products${search ? `?search=${encodeURIComponent(search)}` : ''}`),
   });
 }
 
@@ -56,8 +46,7 @@ export function useUpdateProduct() {
 export function useDeleteProduct() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) =>
-      apiFetch<void>(`/api/products/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => apiFetch<void>(`/api/products/${id}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: productKeys.all }),
   });
 }

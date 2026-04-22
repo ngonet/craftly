@@ -1,10 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  DisplaySettingsProvider,
-  useDisplaySettings,
-} from './display-settings';
+import { DisplaySettingsProvider, useDisplaySettings } from './display-settings';
 
 function createWrapper() {
   return function DisplaySettingsTestWrapper({ children }: { children: ReactNode }) {

@@ -63,9 +63,7 @@ function createSale(productId: string, quantity = 2): SaleDto {
   };
 }
 
-function createSaleWithItems(
-  items: Array<{ productId: string; quantity: number }>,
-): SaleDto {
+function createSaleWithItems(items: Array<{ productId: string; quantity: number }>): SaleDto {
   const total = items.reduce((sum, item) => sum + item.quantity * 20, 0);
 
   return {
@@ -149,9 +147,7 @@ describe('useQuickSale', () => {
     const mutationPromise = result.current.mutateAsync(input);
 
     await waitFor(() => {
-      expect(queryClient.getQueryData(productKeys.list())).toEqual([
-        { ...product, stock: 3 },
-      ]);
+      expect(queryClient.getQueryData(productKeys.list())).toEqual([{ ...product, stock: 3 }]);
       expect(queryClient.getQueryData(productKeys.detail(product.id))).toEqual({
         ...product,
         stock: 3,
@@ -191,9 +187,7 @@ describe('useQuickSale', () => {
     const mutationPromise = result.current.mutateAsync(input);
 
     await waitFor(() => {
-      expect(queryClient.getQueryData(productKeys.list())).toEqual([
-        { ...product, stock: 2 },
-      ]);
+      expect(queryClient.getQueryData(productKeys.list())).toEqual([{ ...product, stock: 2 }]);
       expect(queryClient.getQueryData(productKeys.detail(product.id))).toEqual({
         ...product,
         stock: 2,
@@ -238,9 +232,7 @@ describe('useQuickSale', () => {
       expect(queryClient.getQueryData(productKeys.list('vela'))).toEqual([
         { ...product, stock: 3 },
       ]);
-      expect(queryClient.getQueryData(productKeys.list('difusor'))).toEqual([
-        secondListProduct,
-      ]);
+      expect(queryClient.getQueryData(productKeys.list('difusor'))).toEqual([secondListProduct]);
     });
 
     await act(async () => {
@@ -302,9 +294,7 @@ describe('useQuickSale', () => {
     const mutationPromise = result.current.mutateAsync(input);
 
     await waitFor(() => {
-      expect(queryClient.getQueryData(productKeys.list())).toEqual([
-        { ...product, stock: 0 },
-      ]);
+      expect(queryClient.getQueryData(productKeys.list())).toEqual([{ ...product, stock: 0 }]);
       expect(queryClient.getQueryData(productKeys.detail(product.id))).toEqual({
         ...product,
         stock: 0,

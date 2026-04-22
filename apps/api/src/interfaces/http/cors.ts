@@ -1,10 +1,6 @@
 export const CORS_METHODS = ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'] as const;
 
-export const CORS_ALLOWED_HEADERS = [
-  'Authorization',
-  'Content-Type',
-  'X-Request-Id',
-] as const;
+export const CORS_ALLOWED_HEADERS = ['Authorization', 'Content-Type', 'X-Request-Id'] as const;
 
 export const CORS_MAX_AGE_SECONDS = 86400;
 

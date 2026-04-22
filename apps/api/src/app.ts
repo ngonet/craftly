@@ -44,10 +44,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   app.addHook('onRequest', async (request, reply) => {
-    const allowedOrigin = resolveAllowedOrigin(
-      allowedOrigins,
-      request.headers.origin,
-    );
+    const allowedOrigin = resolveAllowedOrigin(allowedOrigins, request.headers.origin);
     if (!allowedOrigin) return;
 
     const corsHeaders = createCorsHeaders(allowedOrigin);

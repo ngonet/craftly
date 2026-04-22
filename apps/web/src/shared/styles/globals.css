@@ -50,7 +50,7 @@
     --danger-fg-strong: 153 27 27;
   }
 
-  html[data-theme='dark'] {
+  html[data-theme="dark"] {
     color-scheme: dark;
 
     /* ── Neutrals ──────────────────────────────────────────── */
@@ -98,10 +98,7 @@
     min-height: 100dvh;
     background-color: rgb(var(--surface-app));
     color: rgb(var(--text-primary));
-    transition:
-      background-color 150ms ease,
-      color 150ms ease,
-      border-color 150ms ease;
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
   }
 
   *:focus-visible {
@@ -109,7 +106,7 @@
   }
 
   button,
-  [role='button'] {
+  [role="button"] {
     -webkit-user-select: none;
     user-select: none;
   }
@@ -132,11 +129,8 @@ nav,
 header,
 button,
 input {
-  transition:
-    background-color 150ms ease,
-    color 150ms ease,
-    border-color 150ms ease,
-    box-shadow 150ms ease;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, box-shadow
+    150ms ease;
 }
 
 @layer components {

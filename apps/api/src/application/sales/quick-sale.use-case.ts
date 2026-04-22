@@ -35,8 +35,8 @@
 // History is immutable — this is a hard business invariant.
 // ═══════════════════════════════════════════════════════════════
 
-import { Prisma, type PrismaClient } from '@prisma/client';
 import type { MetodoPago } from '@craftly/shared';
+import { Prisma, type PrismaClient } from '@prisma/client';
 
 // ── Input ──────────────────────────────────────────────────
 
@@ -114,10 +114,7 @@ export class QuickSaleUseCase {
       if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
         throw new InvalidQuantityError(item.productId, item.quantity);
       }
-      consolidated.set(
-        item.productId,
-        (consolidated.get(item.productId) ?? 0) + item.quantity,
-      );
+      consolidated.set(item.productId, (consolidated.get(item.productId) ?? 0) + item.quantity);
     }
 
     return this.prisma.$transaction(

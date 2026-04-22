@@ -15,11 +15,11 @@
 import type { FastifyPluginAsync, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import {
+  type JWTPayload,
   createRemoteJWKSet,
   decodeProtectedHeader,
   errors as joseErrors,
   jwtVerify,
-  type JWTPayload,
 } from 'jose';
 import { getPrismaClient } from '../../../infrastructure/prisma/client.js';
 
@@ -169,17 +169,12 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, opts) 
         const protectedHeader = decodeProtectedHeader(token);
         return {
           alg: protectedHeader.alg,
-          ...(typeof protectedHeader.kid === 'string'
-            ? { kid: protectedHeader.kid }
-            : {}),
-          ...(typeof protectedHeader.typ === 'string'
-            ? { typ: protectedHeader.typ }
-            : {}),
+          ...(typeof protectedHeader.kid === 'string' ? { kid: protectedHeader.kid } : {}),
+          ...(typeof protectedHeader.typ === 'string' ? { typ: protectedHeader.typ } : {}),
         };
       } catch (err) {
         return {
-          decodeError:
-            err instanceof Error ? err.message : 'unknown protected header decode error',
+          decodeError: err instanceof Error ? err.message : 'unknown protected header decode error',
         };
       }
     })();
