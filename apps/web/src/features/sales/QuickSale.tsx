@@ -8,117 +8,27 @@
 // list — but the actual price used in the sale is the server snapshot
 // (see QuickSaleUseCase). The client just sends productId + quantity.
 
-import type { MetodoPago, Product } from '@craftly/shared';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from '../../shared/lib/router';
 import { useProducts } from '../products/api';
-import { usePendingSales, useQuickSale } from './api';
-
-interface CartItem {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
-  maxStock: number;
-}
-
-const CART_KEY = 'craftly:cart';
-const METODO_KEY = 'craftly:cart-metodo';
-
-function loadCart(): Map<string, CartItem> {
-  try {
-    const raw = sessionStorage.getItem(CART_KEY);
-    if (!raw) return new Map();
-    return new Map(JSON.parse(raw) as [string, CartItem][]);
-  } catch {
-    return new Map();
-  }
-}
-
-function loadMetodo(): MetodoPago {
-  return sessionStorage.getItem(METODO_KEY) === 'TRANSFERENCIA' ? 'TRANSFERENCIA' : 'EFECTIVO';
-}
+import { usePendingSales } from './api';
+import { useQuickSaleCart } from './useQuickSaleCart';
 
 export function QuickSale() {
-  const { navigate } = useRouter();
   const { data: products, isLoading } = useProducts();
-  const saleMutation = useQuickSale();
-
   const pendingCount = usePendingSales();
+  const {
+    cart,
+    cartItems,
+    total,
+    itemCount,
+    metodoPago,
+    setMetodoPago,
+    addToCart,
+    removeFromCart,
+    handleSell,
+    isSelling,
+    sellError,
+  } = useQuickSaleCart();
 
-  const [cart, setCart] = useState<Map<string, CartItem>>(loadCart);
-  const [metodoPago, setMetodoPago] = useState<MetodoPago>(loadMetodo);
-
-  useEffect(() => {
-    sessionStorage.setItem(CART_KEY, JSON.stringify([...cart.entries()]));
-  }, [cart]);
-
-  useEffect(() => {
-    sessionStorage.setItem(METODO_KEY, metodoPago);
-  }, [metodoPago]);
-
-  const addToCart = useCallback((product: Product) => {
-    setCart((prev) => {
-      const next = new Map(prev);
-      const existing = next.get(product.id);
-      const currentQty = existing?.quantity ?? 0;
-      const maxStock = product.stock - currentQty;
-
-      if (maxStock <= 0) return prev;
-
-      next.set(product.id, {
-        productId: product.id,
-        name: product.name,
-        price: Number(product.priceSale),
-        quantity: currentQty + 1,
-        maxStock: product.stock,
-      });
-      return next;
-    });
-  }, []);
-
-  const removeFromCart = useCallback((productId: string) => {
-    setCart((prev) => {
-      const next = new Map(prev);
-      const existing = next.get(productId);
-      if (!existing) return prev;
-      if (existing.quantity <= 1) {
-        next.delete(productId);
-      } else {
-        next.set(productId, { ...existing, quantity: existing.quantity - 1 });
-      }
-      return next;
-    });
-  }, []);
-
-  const cartItems = useMemo(() => [...cart.values()], [cart]);
-  const total = useMemo(
-    () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    [cartItems],
-  );
-  const itemCount = useMemo(
-    () => cartItems.reduce((sum, item) => sum + item.quantity, 0),
-    [cartItems],
-  );
-
-  async function handleSell() {
-    if (cartItems.length === 0) return;
-
-    const result = await saleMutation.mutateAsync({
-      metodoPago,
-      items: cartItems.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-      })),
-    });
-
-    setCart(new Map());
-    sessionStorage.removeItem(CART_KEY);
-    sessionStorage.removeItem(METODO_KEY);
-    navigate({ name: 'sale-success', total: result.total });
-  }
-
-  // Available products = those with stock > 0
   const available = products?.filter((p) => p.stock > 0) ?? [];
   const outOfStock = products?.filter((p) => p.stock === 0) ?? [];
 
@@ -236,7 +146,7 @@ export function QuickSale() {
                 </button>
               ))}
             </div>
-            <span className="text-lg font-bold text-fg-primary">${total.toFixed(2)}</span>
+            <span className="text-lg font-bold text-fg-primary">${total}</span>
           </div>
 
           {/* Payment method toggle */}
@@ -268,20 +178,14 @@ export function QuickSale() {
           {/* Sell button */}
           <button
             type="button"
-            disabled={saleMutation.isPending}
+            disabled={isSelling}
             onClick={handleSell}
             className="btn-primary w-full text-lg"
           >
-            {saleMutation.isPending ? 'Registrando...' : `Vender $${total.toFixed(2)}`}
+            {isSelling ? 'Registrando...' : `Vender $${total}`}
           </button>
 
-          {saleMutation.error && (
-            <p className="text-danger-fg text-sm text-center">
-              {saleMutation.error.message.includes('INSUFFICIENT_STOCK')
-                ? 'Stock insuficiente — alguien vendió antes que vos'
-                : `Error: ${saleMutation.error.message}`}
-            </p>
-          )}
+          {sellError && <p className="text-danger-fg text-sm text-center">{sellError}</p>}
         </div>
       )}
     </div>

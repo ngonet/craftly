@@ -1,4 +1,5 @@
 import { CreateProductInputSchema, UpdateProductInputSchema } from '@craftly/shared';
+import { subtractMoney } from '../../shared/lib/money';
 import { useEffect, useState } from 'react';
 import type { FormEvent, RefObject } from 'react';
 import { useAuth } from '../../shared/lib/auth';
@@ -32,7 +33,7 @@ export function useProductForm({ productId }: UseProductFormOptions) {
   const margin =
     costoBase && priceSale && Number(priceSale) > 0
       ? {
-          amount: (Number(priceSale) - Number(costoBase)).toFixed(2),
+          amount: subtractMoney(priceSale, costoBase),
           pct: ((1 - Number(costoBase) / Number(priceSale)) * 100).toFixed(0),
         }
       : null;
