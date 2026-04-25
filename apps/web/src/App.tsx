@@ -4,7 +4,8 @@
 // Once authenticated, the router context handles screen navigation
 // with a bottom tab bar (Productos | Vender).
 
-import { type FormEvent, useState } from 'react';
+import type { FormEvent } from 'react';
+import { useState } from 'react';
 
 import { ProductForm } from './features/products/ProductForm';
 import { ProductList } from './features/products/ProductList';
