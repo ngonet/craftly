@@ -10,7 +10,7 @@
 // new pool on every warm invocation and exhaust the Supabase pooler.
 
 import { PrismaClient } from '@prisma/client';
-import { loadEnv } from '../config/env.js';
+import { loadEnv } from '../../config/env.js';
 
 let client: PrismaClient | null = null;
 
