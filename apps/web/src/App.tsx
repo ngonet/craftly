@@ -186,9 +186,10 @@ function MainScreen() {
             type="button"
             onClick={toggleTheme}
             aria-pressed={theme === 'dark'}
+            aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
             className="btn-ghost min-w-touch px-3 text-sm"
           >
-            {theme === 'dark' ? '☀️ Claro' : '🌙 Oscuro'}
+            {theme === 'dark' ? '☀️' : '🌙'}
           </button>
           <span className="text-sm text-fg-muted hidden sm:inline">{user?.email}</span>
           <button type="button" onClick={handleLogout} className="btn-ghost text-sm">

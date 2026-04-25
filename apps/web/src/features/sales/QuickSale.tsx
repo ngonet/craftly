@@ -8,12 +8,14 @@
 // list — but the actual price used in the sale is the server snapshot
 // (see QuickSaleUseCase). The client just sends productId + quantity.
 
+import { useState } from 'react';
 import { useProducts } from '../products/api';
 import { usePendingSales } from './api';
 import { useQuickSaleCart } from './useQuickSaleCart';
 
 export function QuickSale() {
-  const { data: products, isLoading } = useProducts();
+  const [search, setSearch] = useState('');
+  const { data: products, isLoading } = useProducts(search || undefined);
   const pendingCount = usePendingSales();
   const {
     cart,
@@ -34,8 +36,19 @@ export function QuickSale() {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Search bar */}
+      <div className="px-5 pt-4 pb-2">
+        <input
+          type="search"
+          placeholder="Buscar productos..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="input"
+        />
+      </div>
+
       {/* Product grid */}
-      <div className="flex-1 overflow-y-auto px-5 pt-4 pb-48">
+      <div className="flex-1 overflow-y-auto px-5 pt-2 pb-48">
         {pendingCount > 0 && (
           <div className="mb-3 px-4 py-2.5 rounded-xl bg-accent-soft border border-accent flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
