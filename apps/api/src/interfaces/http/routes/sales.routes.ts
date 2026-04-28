@@ -8,6 +8,10 @@
 import { QuickSaleInputSchema } from '@craftly/shared';
 import type { PrismaClient } from '@prisma/client';
 import type { FastifyPluginAsync } from 'fastify';
+import {
+  DeleteSaleUseCase,
+  SaleNotFoundError,
+} from '../../../application/sales/delete-sale.use-case.js';
 import { GetDailySummaryUseCase } from '../../../application/sales/get-daily-summary.use-case.js';
 import {
   EmptySaleError,
@@ -17,9 +21,12 @@ import {
   QuickSaleUseCase,
 } from '../../../application/sales/quick-sale.use-case.js';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function createSalesRoutes(prisma: PrismaClient): FastifyPluginAsync {
   const quickSale = new QuickSaleUseCase(prisma);
   const dailySummary = new GetDailySummaryUseCase(prisma);
+  const deleteSale = new DeleteSaleUseCase(prisma);
 
   return async (fastify) => {
     // ── POST /quick — Venta Rápida ─────────────────────
@@ -79,6 +86,31 @@ export function createSalesRoutes(prisma: PrismaClient): FastifyPluginAsync {
       });
 
       return reply.send(result);
+    });
+
+    // ── DELETE /:id — eliminar venta + restaurar stock ─
+    fastify.delete('/:id', { preHandler: fastify.authenticate }, async (request, reply) => {
+      const { id } = request.params as { id: string };
+
+      if (!UUID_REGEX.test(id)) {
+        return reply.code(400).send({
+          error: 'INVALID_SALE_ID',
+          message: 'sale id must be a valid UUID',
+        });
+      }
+
+      try {
+        await deleteSale.execute({ userId: request.user.id, saleId: id });
+        return reply.code(204).send();
+      } catch (err) {
+        if (err instanceof SaleNotFoundError) {
+          return reply.code(err.statusCode).send({
+            error: err.code,
+            message: err.message,
+          });
+        }
+        throw err;
+      }
     });
   };
 }

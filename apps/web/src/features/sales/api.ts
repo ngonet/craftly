@@ -171,3 +171,21 @@ export function useDailySummary() {
     staleTime: 1000 * 30, // 30 seconds
   });
 }
+
+// ── useDeleteSale — eliminar venta + restaurar stock ──────
+//
+// Acción esporádica con confirmación previa: no usamos optimistic
+// update. Invalidamos sales + products en onSettled para que el
+// resumen del día y el listado de productos queden consistentes.
+
+export function useDeleteSale() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (saleId: string) => apiFetch<void>(`/api/sales/${saleId}`, { method: 'DELETE' }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: SALES_KEY });
+      qc.invalidateQueries({ queryKey: productKeys.all });
+    },
+  });
+}

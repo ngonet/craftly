@@ -12,14 +12,15 @@
 //   5. Sales feed — scrollable list, most recent first
 
 import type { DailySummary as DailySummaryType, SaleDto } from '@craftly/shared';
-import { BanknotesIcon } from '../../shared/ui/icons';
-import { useDailySummary } from './api';
+import { useEffect, useState } from 'react';
+import { BanknotesIcon, TrashIcon } from '../../shared/ui/icons';
+import { useDailySummary, useDeleteSale } from './api';
 
 // ── Helpers ────────────────────────────────────────────────
 
 function formatMoney(value: string): string {
   const num = Number(value);
-  return num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return Math.round(num).toLocaleString('es-AR', { maximumFractionDigits: 0 });
 }
 
 function formatTime(iso: string): string {
@@ -117,11 +118,38 @@ function ProfitCard({
   );
 }
 
-function SaleRow({ sale }: { sale: SaleDto }) {
+function SaleRow({
+  sale,
+  onDelete,
+  isDeleting,
+}: {
+  sale: SaleDto;
+  onDelete: (saleId: string) => void;
+  isDeleting: boolean;
+}) {
   const itemSummary = sale.items.map((item) => `${item.quantity}x`).join(', ');
+  const [confirming, setConfirming] = useState(false);
+
+  // Auto-cancel confirmation after 3s — avoids accidental deletes if the
+  // user taps once and walks away. Cleanup the timer if the row unmounts
+  // or the user takes another action first.
+  useEffect(() => {
+    if (!confirming) return;
+    const timer = window.setTimeout(() => setConfirming(false), 3000);
+    return () => window.clearTimeout(timer);
+  }, [confirming]);
+
+  function handleClick() {
+    if (isDeleting) return;
+    if (!confirming) {
+      setConfirming(true);
+      return;
+    }
+    onDelete(sale.id);
+  }
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-soft last:border-0">
+    <div className="flex items-center justify-between py-3 border-b border-soft last:border-0 gap-3">
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-fg-primary truncate">{itemSummary}</p>
         <p className="text-xs text-fg-muted mt-0.5">
@@ -130,7 +158,20 @@ function SaleRow({ sale }: { sale: SaleDto }) {
           {sale.metodoPago === 'EFECTIVO' ? 'Efectivo' : 'Transferencia'}
         </p>
       </div>
-      <p className="text-sm font-bold text-fg-primary ml-3">${formatMoney(sale.total)}</p>
+      <p className="text-sm font-bold text-fg-primary">${formatMoney(sale.total)}</p>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isDeleting}
+        aria-label={confirming ? 'Confirmar eliminación' : 'Eliminar venta'}
+        className={`shrink-0 rounded-lg p-2 transition-colors ${
+          confirming
+            ? 'bg-danger text-surface-card'
+            : 'text-fg-muted hover:bg-danger-soft hover:text-danger-fg'
+        } ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
+      >
+        <TrashIcon className="w-4 h-4" />
+      </button>
     </div>
   );
 }
@@ -153,6 +194,7 @@ function EmptyState() {
 
 export function DailySummary() {
   const { data, isLoading, error } = useDailySummary();
+  const deleteSale = useDeleteSale();
 
   if (isLoading) {
     return (
@@ -208,7 +250,12 @@ export function DailySummary() {
         </h3>
         <div className="bg-surface-card rounded-2xl border border-subtle px-4">
           {data.sales.map((sale) => (
-            <SaleRow key={sale.id} sale={sale} />
+            <SaleRow
+              key={sale.id}
+              sale={sale}
+              onDelete={(id) => deleteSale.mutate(id)}
+              isDeleting={deleteSale.isPending && deleteSale.variables === sale.id}
+            />
           ))}
         </div>
       </div>
