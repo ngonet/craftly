@@ -24,6 +24,7 @@
     "db:generate": "npm run db:generate --workspace @craftly/api",
     "db:migrate": "npm run db:migrate --workspace @craftly/api",
     "db:deploy": "npm run db:deploy --workspace @craftly/api",
+    "db:seed": "npm run db:seed --workspace @craftly/api --",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

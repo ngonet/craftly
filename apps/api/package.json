@@ -13,9 +13,13 @@
     "db:generate": "node --env-file=../../.env ../../node_modules/prisma/build/index.js generate",
     "db:migrate": "node --env-file=../../.env ../../node_modules/prisma/build/index.js migrate dev",
     "db:deploy": "node --env-file=../../.env ../../node_modules/prisma/build/index.js migrate deploy",
+    "db:seed": "node --env-file=../../.env ../../node_modules/prisma/build/index.js db seed --",
     "db:studio": "node --env-file=../../.env ../../node_modules/prisma/build/index.js studio",
     "test": "vitest run",
     "test:watch": "vitest"
+  },
+  "prisma": {
+    "seed": "tsx --env-file-if-exists=../../.env prisma/seed.ts"
   },
   "dependencies": {
     "@craftly/shared": "*",

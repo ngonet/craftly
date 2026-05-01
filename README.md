@@ -101,6 +101,28 @@ Aplicar migraciones en deploy:
 npm run db:deploy
 ```
 
+Ejecutar seed/import de productos para un usuario:
+
+```bash
+npm run db:seed -- --file /ruta/al/archivo-shopify.tsv --user-id <uuid>
+```
+
+El `userId` es obligatorio. No hay usuario por defecto.
+
+Ejemplo:
+
+```bash
+npm run db:seed -- --file /ruta/al/archivo-shopify.tsv --user-id bedaeb3e-644a-4587-a3d5-891ffde92634
+```
+
+Notas del importador actual:
+
+- no modifica el schema Prisma
+- cada variante de tamaño se importa como un producto independiente
+- `costoBase` se carga igual a `priceSale`
+- `stock` se carga en `0`
+- el import es idempotente por `name` dentro del usuario
+
 ## Scripts útiles
 
 ```bash
