@@ -186,7 +186,6 @@ export function useDeleteSale() {
     onSettled: async () => {
       await Promise.all([
         qc.invalidateQueries({ queryKey: SALES_KEY }),
-        qc.invalidateQueries({ queryKey: DAILY_SUMMARY_KEY }),
         qc.invalidateQueries({ queryKey: productKeys.all }),
       ]);
     },
