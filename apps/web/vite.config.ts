@@ -30,6 +30,11 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
+            // Sales endpoints must always be live — stale totals break cash accounting.
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/sales'),
+            handler: 'NetworkOnly',
+          },
+          {
             // API calls: try network first, fall back to cache after 3s.
             // Critical for fairs with spotty connectivity.
             urlPattern: ({ url }) => url.pathname.startsWith('/api/'),

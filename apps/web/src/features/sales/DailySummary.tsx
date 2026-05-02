@@ -13,7 +13,7 @@
 
 import type { DailySummary as DailySummaryType, SaleDto } from '@craftly/shared';
 import { useEffect, useState } from 'react';
-import { BanknotesIcon, TrashIcon } from '../../shared/ui/icons';
+import { BanknotesIcon, ExclamationTriangleIcon, TrashIcon } from '../../shared/ui/icons';
 import { useDailySummary, useDeleteSale } from './api';
 
 // ── Helpers ────────────────────────────────────────────────
@@ -242,6 +242,38 @@ export function DailySummary() {
         totalCosto={data.totalCosto}
         utilidad={data.utilidad}
       />
+
+      {/* Delete error banner */}
+      {deleteSale.isError && (
+        <div className="bg-danger-soft border border-danger rounded-2xl px-4 py-3 flex items-start gap-3">
+          <ExclamationTriangleIcon className="w-5 h-5 text-danger-fg shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-danger-fg-strong text-sm font-medium">
+              {deleteSale.error?.message ?? 'No se pudo eliminar la venta'}
+            </p>
+          </div>
+          <div className="flex gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                const id = deleteSale.variables;
+                deleteSale.reset();
+                if (id !== undefined) deleteSale.mutate(id);
+              }}
+              className="text-danger-fg text-sm font-medium underline"
+            >
+              Reintentar
+            </button>
+            <button
+              type="button"
+              onClick={() => deleteSale.reset()}
+              className="text-danger-fg text-sm"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Sales feed */}
       <div>

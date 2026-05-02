@@ -183,9 +183,12 @@ export function useDeleteSale() {
 
   return useMutation({
     mutationFn: (saleId: string) => apiFetch<void>(`/api/sales/${saleId}`, { method: 'DELETE' }),
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: SALES_KEY });
-      qc.invalidateQueries({ queryKey: productKeys.all });
+    onSettled: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: SALES_KEY }),
+        qc.invalidateQueries({ queryKey: DAILY_SUMMARY_KEY }),
+        qc.invalidateQueries({ queryKey: productKeys.all }),
+      ]);
     },
   });
 }
